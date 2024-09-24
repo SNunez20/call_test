@@ -1,0 +1,598 @@
+body{
+	background-color: #FFFFFF;
+    overflow-x: hidden;
+}
+
+a,p,h1,h2,h3,h4,h5,span,label{
+	font-family: 'Open Sans', sans-serif;
+}
+
+a:link   
+{   
+text-decoration:none;  }
+
+.logofan {
+	width:140px;
+	position:absolute;
+	margin-left:15%;
+	margin-top:60px;
+	z-index:99999999;
+}
+
+.tarjetafan {
+	width:240px;
+	height:auto;
+	position:absolute;
+	margin-left:65%;
+	margin-top:10px;
+	z-index:99999999;
+}
+
+.navicon {
+	width:50px;
+	height:auto;
+	top:225px;
+	margin-left:66%;
+	position:absolute;
+	z-index:9999999;
+	cursor:pointer;
+}
+
+.navicon img {
+	width:100%;
+	transition:1s;
+}
+
+.navicon img:hover {
+	-webkit-transform: scale(1.2) rotate(0deg);
+	transform: scale(1.2) rotate(0deg);
+	border-radius:10px;
+	transition:1s;
+}
+
+.logoatsanidadpaso1 {
+	width:160px;
+	position:absolute;
+	margin-left:15%;
+	margin-top:60px;
+	z-index:99999999999999999;
+}
+
+.container{
+	width:100%;
+	background-color:#FFFFFF;
+    overflow-x: hidden;
+}
+
+.header {
+	width:100%;
+	height:450px;
+	position:absolute;
+	top:0!important;
+	background:(img/banner.jpg);
+	margin:0;
+	
+}
+
+.header img .banner{
+	width: 100%;
+	margin:0;
+    display: block;
+}
+
+.header .header-logo{
+	margin-top: 0px;
+    display: block;
+    position: absolute;
+    top: 153px;
+    left: 26px;
+}
+
+.header .header-logo img{
+	width: 152px;
+}
+
+h3{
+	color: #941447;
+    font-size: 24px;
+    margin-bottom: 30px;
+    font-weight: bold;
+}
+
+label{
+	color: #065188;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.form-control{
+	-webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.0);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.0);
+    border-radius: 2px;
+}
+
+select.form-control{
+	background:url(../img/common/select-arrow.png) right center no-repeat;
+	background-color:#FFFFFF;
+	-moz-appearance: window;
+    -webkit-appearance: none;
+}
+
+.footer {
+	width:100%;
+	margin:0;
+	bottom:0px!important;
+}
+
+.footer img{	
+	width: 100%;
+	margin:0;
+    display: block;
+	bottom:0px!important;
+}
+
+.error {
+    color: #F9595E;
+}
+
+.button{
+	float:right;
+	margin-right:20px;
+	padding:10px;
+	padding-left:15px;
+	padding-right:15px;
+	background:#065188;
+	color:#FFFFFF;
+	font-weight: bold;
+	text-decoration: none;
+	border:1px solid #FFFFFF;
+	cursor:pointer;
+	text-align: center;
+}
+
+.button:hover{
+	border:1px solid #065188;
+	background:#FFFFFF;
+	color:#065188;
+	text-decoration: none;
+}
+
+.button:disabled{
+	opacity: 0.8;
+}
+
+p.error{
+	color:#ea595d;
+}
+
+.msgbox{
+	background:#DFF2BF;
+}
+
+.msgbox p{
+	padding:10px;
+	padding-left:15px;
+	padding-right:15px;
+	color:#4F8A10;
+	text-align: center;
+}
+
+#primaria{
+    display: none;
+    position:fixed;
+    z-index: 1000000;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+}
+#loading{
+    position: fixed;
+    z-index: 1000000;
+    margin-top: 17%;
+    margin-left: 45%;
+    width: 84px;
+    height: 84px;
+}
+
+.botones {
+	position:absolute;
+	top:225px;
+	margin-left:22%;
+	padding-left:15px;
+	z-index:999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999;
+}
+
+.centrado {
+	width:100%;
+	margin-left:23%;
+	float:left;
+}
+
+.centrado img {
+	width:300px;
+}
+
+.izquierda {
+	width:20%;
+	float:left;
+	margin-left:3%;
+	text-align:center;
+	padding-top:25px;
+}
+
+.izquierdaenblanco {
+	width:20%;
+	float:left;
+	margin-left:3%;
+	text-align:center;
+	padding-top:25px;
+}
+
+.izquierda img {
+  width:300px;
+  display: inline-block;
+  vertical-align: middle;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-transition-duration: 0.8s;
+  transition-duration: 0.8s;
+  -webkit-transition-property: transform;
+  transition-property: transform;
+}
+
+.izquierda img:hover {
+	-webkit-transform: scale(1.1) rotate(0deg);
+	transform: scale(1.1) rotate(0deg);
+	border-radius:10px;
+}
+
+img {max-width:100%;}
+
+/* Grow Rotate */
+.hvr-grow-rotate {
+  display: inline-block;
+  vertical-align: middle;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-transition-duration: 0.8s;
+  transition-duration: 0.8s;
+  -webkit-transition-property: transform;
+  transition-property: transform;
+}
+.hvr-grow-rotate:hover, .hvr-grow-rotate:focus, .hvr-grow-rotate:active {
+  -webkit-transform: scale(1.09) rotate(0deg);
+  transform: scale(1.09) rotate(0deg);
+}
+
+.botoninicio {
+  font-family: helvetica;
+  color: #FFFFFF !important;
+  font-size: 18px;
+  box-shadow: 1px 1px 1px #BEE2F9;
+  padding: 10px 25px;
+  background: linear-gradient(top,  #146A9B,  #187EB8);
+  background: -ms-linear-gradient(top,  #146A9B,  #187EB8);
+  background: -webkit-gradient(linear, left top, left bottom, from(#146A9B), to(#187EB8));
+  background: -moz-linear-gradient(top,  #146A9B,  #187EB8);
+  transition:1s;
+  border-radius:10px;
+  border-width:0;
+  }
+  
+.botoninicio:hover {
+  color: #14396A !important;
+  background: #fff;
+  border: solid 1px #146A9B;
+  transition:1s;
+  font-size:18px;
+  border-width:0;
+}
+
+.botonsoyfan {
+  font-family: helvetica;
+  color: #FFFFFF !important;
+  font-size: 18px;
+  box-shadow: 1px 1px 1px #BEE2F9;
+  text-shadow: 1px 1px 1px #000;
+  padding: 15px 25px;
+  background: #37733D;
+  transition:1s;
+  border-radius:10px;
+  border-width:0;
+  }
+  
+.botonsoyfan:hover {
+  color: #FFFFFF !important;
+  background: #4FA658;
+  border: solid 1px #146A9B;
+  text-shadow: 1px 1px 1px #000;
+  transition:1s;
+  font-size:18px;
+  border-width:0;
+  text-decoration:none;   
+  cursor:pointer;
+}
+
+.soyfan {
+	position:absolute;
+	margin-left:50%;
+	top:235px;
+	z-index:999999999999999999999999;
+}
+
+.page-containerr {
+	width:80%;
+	margin-left:10%;
+	margin-top:200px;
+	padding:0px;
+}
+
+/**/
+
+/* The Modal (background) */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 99999999999999999999999; /* Sit on top */
+    padding-top: 10px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-content {
+	font-family: Arial;
+    position: relative;
+    background-color: #fefefe;
+    margin: auto;
+    padding: 0px;
+    width: 90%;
+	height:auto;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    -webkit-animation-name: animatetop;
+    -webkit-animation-duration: 0.4s;
+    animation-name: animatetop;
+    animation-duration: 0.4s;
+	text-align:center;
+}
+
+/* Add Animation */
+@-webkit-keyframes animatetop {
+    from {top:-300px; opacity:0} 
+    to {top:0; opacity:1}
+}
+
+@keyframes animatetop {
+    from {top:-300px; opacity:0}
+    to {top:0; opacity:1}
+}
+
+/* The Close Button */
+.close {
+    color: #6c1132;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+	padding:20px;
+}
+
+.close:hover,
+.close:focus {
+    color: #6c1132;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-header {
+    padding: 10px 20px;
+	background: url(../img/headerbackground.png) no-repeat center #E3B82A;
+    color: white;
+	text-shadow: 2px 2px #095E9E;
+	height:auto;
+	vertical-align:text-top;
+}
+
+.modal-body {
+	height:80%;
+	padding: 2px 0px;
+}
+
+.modal-body img {
+	width:95%;
+	height:auto;
+}
+
+.modal-footer {
+    padding: 2px 10px;
+    background-color: #250C62;
+    color: white;
+}
+
+/**/
+
+.tarjetafanmodal {
+	width:100%;
+	height:100%;
+}
+
+.tarjetafanmodal img {
+	width:70%;
+}
+
+@media (max-width: 980px) {
+	
+.header img .banner{
+	width: 100%;
+	margin-left:0%;
+    display: block;
+}
+	
+.centrado {
+	width:100%;
+	float:left;
+	margin-left:0%;
+}
+
+	.izquierda {
+	width:30%;
+	float:left;
+	margin-left:2%;
+	text-align:center;
+	padding-top:25px;
+}
+
+.botones {
+	position:absolute;
+	top:10%;
+	margin-left:25%;
+	padding-top:25px;
+	padding-bottom:25px;
+	padding-left:15px;
+}
+
+.botoninicio {
+  font-family: helvetica;
+  color: #FFFFFF !important;
+  font-size: 14px;
+  box-shadow: 1px 1px 1px #BEE2F9;
+  padding: 10px 25px;
+  background: linear-gradient(top,  #146A9B,  #187EB8);
+  background: -ms-linear-gradient(top,  #146A9B,  #187EB8);
+  background: -webkit-gradient(linear, left top, left bottom, from(#146A9B), to(#187EB8));
+  background: -moz-linear-gradient(top,  #146A9B,  #187EB8);
+}
+
+.botoninicio:hover {
+  font-size: 14px;
+  padding: 10px 25px;
+}
+
+.soyfan {
+	position:absolute;
+	margin-left:62%;
+	top:10%;
+	padding-top:25px;
+	z-index:999999999999999999999999;
+}
+
+.logofan {
+	width:140px;
+	height:auto;
+	position:absolute;
+	margin-left:8%;
+	top:10px;
+	z-index:99999999;
+}
+
+.tarjetafan {
+	width:200px;
+	height:auto;
+	position:absolute;
+	margin-left:68%;
+	top:30px;
+	z-index:99999999;
+}
+
+.page-containerr {
+	width:90%;
+	margin-left:5%;
+	margin-top:100px;
+	padding:0px;
+}
+
+.izquierdaenblanco {
+	display:none;
+}
+
+.navicon {
+	width:50px;
+	height:auto;
+	top:200px;
+	margin-left:75%;
+	position:absolute;
+	z-index:9999999;
+	cursor:pointer;
+}
+
+@media (max-width: 640px) {
+	
+	
+	.navicon {
+	width:50px;
+	height:auto;
+	top:200px;
+	margin-left:75%;
+	position:absolute;
+	z-index:9999999;
+	cursor:pointer;
+}
+
+	.centrado {
+	width:100%;
+	margin-left:0%;
+	float:left;
+}
+
+.izquierda {
+	width:40%;
+	float:left;
+	margin-left:5%;
+	text-align:center;
+	padding-top:25px;
+}
+
+.botones {
+	position:absolute;
+	top:250px;
+	margin-left:0%;
+	padding-top:25px;
+	padding-bottom:25px;
+	padding-left:15px;
+}
+
+.botoninicio {
+  font-family: helvetica;
+  color: #FFFFFF !important;
+  font-size: 14px;
+  box-shadow: 1px 1px 1px #BEE2F9;
+  padding: 10px 25px;
+  background: ;
+  background: linear-gradient(top,  #146A9B,  #187EB8);
+  background: -ms-linear-gradient(top,  #146A9B,  #187EB8);
+  background: -webkit-gradient(linear, left top, left bottom, from(#146A9B), to(#187EB8));
+  background: -moz-linear-gradient(top,  #146A9B,  #187EB8);
+}
+
+.page-containerr {
+	width:100%;
+	margin-left:0%;
+	margin-top:150px;
+	padding:0px;
+}
+
+.tarjetafan {
+	display:none;}
+	
+	.botonsoyfan {
+		font-size:14px;
+	}
+.soyfan {
+	position:absolute;
+	margin-left:51%;
+	top:100px;
+	z-index:999999999999999999999999;
+}
+}

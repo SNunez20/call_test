@@ -1,0 +1,40 @@
+.oculto {
+    display: none;
+}
+.mostrar{
+    display: block;
+}
+.blanco {
+    color:white;
+}
+.requerido{
+    font-weight: bold;
+    font-size: 18px;
+    color: red;
+}
+
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+
+
+#gps_rutas_map
+{
+    position: fixed !important; 
+    height: 50% !important;
+    width: 50% !important;
+    float:left
+ 
+
+}
+#gps_rutas_pano {
+    position: fixed !important; 
+    width: 50% !important; 
+    height: 50% !important;
+}
+ 

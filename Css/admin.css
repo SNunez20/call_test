@@ -1,0 +1,2002 @@
+html {
+  position: relative;
+
+  min-height: 100%;
+}
+
+body {
+  font-family: "Open Sans", sans-serif;
+
+  margin-bottom: 77px;
+}
+
+a {
+  outline: none !important;
+}
+
+.form-control {
+  height: 40px;
+}
+
+.form-control::-webkit-input-placeholder {
+  color: #ffffff !important;
+
+  font-size: 13px;
+
+  line-height: 15px;
+
+  font-style: italic;
+}
+
+.form-control::-moz-input-placeholder {
+  color: #ffffff !important;
+
+  font-size: 13px;
+
+  line-height: 15px;
+
+  font-style: italic;
+}
+
+.form-control::-ms-input-placeholder {
+  color: #ffffff !important;
+
+  font-size: 13px;
+
+  line-height: 15px;
+
+  font-style: italic;
+}
+
+.form-control:focus {
+  border: 1px solid #146a9b;
+
+  box-shadow: none;
+
+  outline: none;
+}
+
+a.btn.btn-success {
+  background-color: #00b500;
+
+  border-radius: 0;
+
+  position: relative;
+
+  border: 0;
+
+  border-bottom: 3px solid #008900;
+
+  text-transform: uppercase;
+}
+
+a.btn.btn-danger {
+  background-color: #f40b0b;
+
+  padding: 18px 0;
+
+  border-radius: 0;
+
+  position: relative;
+
+  border: 0;
+
+  border-bottom: 3px solid #af1033;
+}
+
+.form-control {
+  border-radius: 0 !important;
+
+  background-color: transparent;
+
+  border: 1px solid #fff;
+
+  color: #fff;
+}
+
+footer {
+  background-color: #007ac7;
+
+  padding: 30px 0;
+
+  margin-top: 40px;
+
+  color: #fff;
+
+  font-size: 12px;
+
+  font-weight: 300;
+
+  position: absolute;
+
+  bottom: 0;
+
+  width: 100%;
+
+  height: 77px;
+}
+
+input:-moz-placeholder {
+  color: #fff;
+}
+
+input:-ms-input-placeholder {
+  color: #fff;
+}
+
+.checkbox label {
+  padding-left: 0px;
+}
+
+/* checkbox */
+
+[type="checkbox"]:not(:checked),
+[type="checkbox"]:checked {
+  position: absolute;
+
+  left: -9999px;
+}
+
+[type="checkbox"]:not(:checked) + label,
+[type="checkbox"]:checked + label {
+  position: relative;
+
+  padding-left: 25px;
+
+  cursor: pointer;
+
+  line-height: 25px;
+}
+
+/* checkbox aspect */
+
+[type="checkbox"]:not(:checked) + label:before,
+[type="checkbox"]:checked + label:before {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  top: 2px;
+
+  width: 17px;
+
+  height: 17px;
+
+  border: 0px transparent;
+
+  background: url("../img/unselected.png") no-repeat center center;
+
+  border-radius: 0px;
+
+  box-shadow: none;
+}
+
+/* checked mark aspect */
+
+[type="checkbox"]:not(:checked) + label:after,
+[type="checkbox"]:checked + label:after {
+  content: "check"; /*'✔';*/
+
+  position: absolute;
+
+  top: 0px;
+
+  left: 0px;
+
+  font-size: 14px;
+
+  color: transparent;
+
+  transition: all 0.2s;
+
+  background: url("../img/selected.png") no-repeat !important;
+
+  background-position: -1px 3px;
+}
+
+/* checked mark aspect changes */
+
+[type="checkbox"]:not(:checked) + label:after {
+  opacity: 0;
+
+  transform: scale(0);
+}
+
+[type="checkbox"]:checked + label:after {
+  opacity: 1;
+
+  transform: scale(1);
+}
+
+/* disabled checkbox */
+
+[type="checkbox"]:disabled:not(:checked) + label:before,
+[type="checkbox"]:disabled:checked + label:before {
+  box-shadow: none;
+
+  border-color: #bbb;
+
+  background-color: #ddd;
+}
+
+[type="checkbox"]:disabled:checked + label:after {
+  color: #999;
+}
+
+[type="checkbox"]:disabled + label {
+  color: #aaa;
+}
+
+/* accessibility */
+
+[type="checkbox"]:checked:focus + label:before,
+[type="checkbox"]:not(:checked):focus + label:before {
+  border: 1px dotted blue;
+}
+
+/* hover style just for information */
+
+label:hover:before {
+  background: url("../img/selected.png") no-repeat center center;
+}
+
+.form-control {
+  border: 1px solid #969da4;
+
+  color: #146a9b;
+
+  padding: 10px 10px 5px;
+}
+
+.form-control::-webkit-input-placeholder {
+  color: #146a9b !important;
+}
+
+.form-control::-moz-input-placeholder {
+  color: #146a9b !important;
+}
+
+.form-control::-ms-input-placeholder {
+  color: #146a9b !important;
+}
+
+/*admin*/
+
+/*
+
+    Header
+
+*/
+
+header {
+  margin-bottom: 30px;
+
+  background-color: #007ac7;
+
+  padding: 30px 0;
+}
+
+.tranka-logo {
+  display: block;
+
+  width: 133px;
+
+  height: 37px;
+
+  text-indent: -9999px;
+
+  overflow: hidden;
+
+  background: url("../img/trankalogo.png") no-repeat center;
+
+  background-size: 133px;
+}
+
+.notifications {
+  margin: -30px 0px;
+
+  width: 80px;
+
+  height: 90px;
+
+  color: transparent;
+
+  overflow: hidden;
+
+  background: url("../img/admin_light.svg") no-repeat center;
+
+  background-size: 30px;
+
+  float: right;
+
+  border: 0px none;
+}
+
+.open .notifications {
+  background-color: #005c90;
+}
+
+.notifications-num {
+  display: inline-block;
+
+  position: absolute;
+
+  top: -6px;
+
+  right: 13px;
+
+  color: #ffffff;
+
+  font-size: 13px;
+
+  width: 25px;
+
+  height: 25px;
+
+  line-height: 25px;
+
+  text-align: center;
+
+  border-radius: 30px;
+
+  -moz-border-radius: 30px;
+
+  -webkit-border-radius: 30px;
+
+  background: #f40b0b;
+}
+
+.notifications-dropdown .dropdown-menu {
+  top: 60px;
+
+  right: 0px;
+
+  left: auto;
+
+  width: 400px;
+
+  border: 0px transparent;
+
+  padding: 0px;
+
+  margin: 0px;
+
+  border-radius: 0px;
+
+  -webkit-border-radius: 0px;
+
+  -moz-border-radius: 0px;
+
+  background-color: #005c90;
+}
+
+header .dropdown {
+  max-width: 320px;
+
+  float: right;
+}
+
+.notifications-dropdown .dropdown-menu li {
+  padding: 15px;
+
+  color: #ffffff;
+
+  font-size: 13px;
+}
+
+.notifications-dropdown .dropdown-menu li a {
+  color: #ffffff;
+}
+
+.notifications-dropdown .dropdown-menu li a:hover {
+  color: #ffffff;
+
+  background-color: transparent;
+
+  opacity: 0.8;
+}
+
+a.ver-ultimas-reservas {
+  text-align: center;
+
+  padding: 0px !important;
+}
+
+.name {
+  padding: 0px !important;
+
+  margin: 0px 0px 5px;
+}
+
+.sprite-notification-items {
+  background-image: url("../img/sprite-notification-list.svg");
+
+  background-repeat: no-repeat;
+
+  display: inline-block;
+}
+
+.sprite-notification-items-black {
+  background-image: url("../img/sprite-notification-list-black.svg");
+
+  background-repeat: no-repeat;
+
+  display: inline-block;
+}
+
+.fecha-reserva {
+  padding: 0px 12px 0px 25px;
+
+  background-position: 0px 0px;
+
+  line-height: 20px;
+
+  /*width: 32%;*/
+}
+
+.hora-reserva {
+  padding: 0px 12px 0px 22px;
+
+  background-position: 0px -91px;
+
+  line-height: 19px;
+
+  /*width: 28%;*/
+}
+
+.personas-reserva {
+  padding: 0px 12px 0px 22px;
+
+  background-position: 0px -144px;
+
+  line-height: 19px;
+
+  background-size: 17px;
+
+  /*width: 16%;*/
+}
+
+.aceptar-reserva {
+  padding: 0px !important;
+
+  background-position: center -272px;
+
+  line-height: 17px !important;
+
+  display: inline-block !important;
+
+  text-indent: -9999px;
+
+  width: 20px;
+
+  margin: 0 15px;
+}
+
+.cancelar-reserva {
+  padding: 0px !important;
+
+  background-position: center -351px;
+
+  line-height: 17px !important;
+
+  display: inline-block !important;
+
+  text-indent: -9999px;
+
+  width: 20px;
+}
+
+.status-red {
+  background-color: #f40b0b;
+}
+
+.status-orange {
+  background-color: #faa61a;
+}
+
+.status-green {
+  background-color: #00b500;
+}
+
+/*
+
+    Menu
+
+*/
+
+.admin-menu {
+  overflow: hidden;
+
+  margin: 0px 0px 30px 0px;
+
+  padding: 0px;
+
+  background: #0079c5;
+}
+
+.admin-menu li {
+  list-style-type: none;
+}
+
+.admin-menu li.active {
+  background: #005c90;
+}
+
+.admin-menu li a {
+  display: block;
+
+  border-bottom: 1px solid #009cef;
+
+  line-height: 50px;
+
+  padding: 0px 15px 0px 50px;
+
+  color: #ffffff;
+
+  font-size: 15px;
+}
+
+.admin-menu li:last-child a {
+  border-bottom: 0px;
+}
+
+.admin-menu li.calendario a {
+  background-image: url("../img/sprite-menu.svg");
+
+  background-repeat: no-repeat;
+
+  background-position: 15px 15px;
+}
+
+.admin-menu li.reservas a {
+  background-image: url("../img/sprite-menu.svg");
+
+  background-repeat: no-repeat;
+
+  background-position: 15px -125px;
+}
+
+.admin-menu li.nueva-reserva a {
+  background-image: url("../img/sprite-menu.svg");
+
+  background-repeat: no-repeat;
+
+  background-position: 15px -297px;
+}
+
+.admin-menu li.historial a {
+  background-image: url("../img/sprite-menu.svg");
+
+  background-repeat: no-repeat;
+
+  background-position: 15px -438px;
+}
+
+.admin-menu li.perfil a {
+  background-image: url("../img/sprite-menu.svg");
+
+  background-repeat: no-repeat;
+
+  background-position: 15px -590px;
+}
+
+.admin-menu li.restuarantes a {
+  background-image: url("../img/sprite-menu.svg");
+
+  background-repeat: no-repeat;
+
+  background-position: 15px -758px;
+}
+
+.admin-menu li.usuarios a {
+  background-image: url("../img/sprite-menu.svg");
+
+  background-repeat: no-repeat;
+
+  background-position: 15px -981px;
+}
+
+/*
+
+    Panel pendientes
+
+*/
+
+.panel-pendientes {
+  background: #eeeeee;
+
+  border: 1px solid #969da4;
+
+  margin-bottom: 30px;
+}
+
+.panel-pendientes h3 {
+  padding: 10px;
+
+  margin: 0px;
+
+  background: #969da4;
+
+  font-size: 14px;
+
+  font-weight: bold;
+
+  color: #ffffff;
+
+  text-transform: uppercase;
+
+  text-align: center;
+}
+
+.pendientes-list {
+  padding: 15px;
+
+  margin: 0px;
+}
+
+.pendientes-list li {
+  list-style-type: none;
+
+  padding: 15px 0px;
+}
+
+.pendientes-list .nombre {
+  width: 70%;
+
+  display: inline-block;
+}
+
+.pendientes-list li p {
+  display: inline-block;
+
+  width: 15%;
+}
+
+.aceptar-blue {
+  display: inline-block;
+
+  text-indent: -9999px;
+
+  overflow: hidden;
+
+  width: 20%;
+
+  height: 13px;
+
+  background: url("../img/aceptar-cancelar-azul.svg") no-repeat bottom right;
+}
+
+.cancelar-blue {
+  display: inline-block;
+
+  text-indent: -9999px;
+
+  overflow: hidden;
+
+  width: 20%;
+
+  height: 13px;
+
+  background: url("../img/aceptar-cancelar-azul.svg") no-repeat top right;
+}
+
+/*
+
+    titulo
+
+*/
+
+.page-title {
+  font-size: 25px;
+
+  margin: 0px 0px 20px 0px;
+
+  color: #434c55;
+}
+
+.page-title strong {
+  color: #0079c5;
+}
+
+/*
+
+    Filtrar calendario
+
+*/
+
+.nav-calendario {
+  margin-bottom: 10px;
+}
+
+.filtrar {
+  line-height: 39px;
+
+  text-transform: uppercase;
+
+  background-image: url("../img/filtros.svg");
+
+  background-repeat: no-repeat;
+
+  background-position: 10px center;
+
+  margin-top: -4px !important;
+
+  padding: 0px 30px 0px 60px;
+}
+
+.nuevo {
+  background-image: url("../img/sprite-menu.svg");
+
+  background-repeat: no-repeat;
+
+  background-position: 9px -304px;
+
+  line-height: 39px;
+
+  margin-top: -4px;
+
+  float: right;
+
+  padding: 0px 25px 0px 40px;
+}
+
+.nav-calendario .nav {
+  display: inline-block;
+
+  float: right;
+}
+
+.nav-calendario .nav li {
+  float: left;
+}
+
+.nav-calendario .nav li a {
+  width: 40px;
+
+  height: 40px;
+
+  display: inline-block;
+
+  text-indent: -9999px;
+
+  overflow: hidden;
+
+  margin-left: 20px;
+
+  background-color: #969da4;
+
+  border-bottom: 3px solid #b2b5b9;
+
+  background-image: url("../img/ant-siguiente-sprite.svg");
+
+  background-repeat: no-repeat;
+}
+
+.nav-calendario .nav li.anterior a {
+  background-position: 11px 11px;
+}
+
+.nav-calendario .nav li.siguiente a {
+  background-position: 11px -98px;
+}
+
+/*
+
+    Calendario cuadricula
+
+*/
+
+.semana {
+  padding: 0px;
+
+  margin: 10px -15px;
+
+  overflow: hidden;
+}
+
+.semana li {
+  list-style-type: none;
+
+  text-align: center;
+
+  width: 14.2%;
+
+  float: left;
+
+  padding: 0px 15px;
+
+  color: #434c55;
+
+  font-size: 13px;
+}
+
+.dias-mes {
+  margin: 0px -15px 30px;
+
+  padding: 0px;
+
+  overflow: hidden;
+}
+
+.dias-mes li {
+  list-style-type: none;
+
+  position: relative;
+
+  width: 14.2%;
+
+  float: left;
+
+  padding: 0px 15px;
+
+  margin-bottom: 15px;
+
+  text-align: center;
+}
+
+.dias-mes li:hover .btn-agregar-reserva {
+  /*.dias-mes li .btn-agregar-reserva{*/
+
+  display: inline-block;
+}
+
+.cant-reservas {
+  width: 100%;
+
+  min-height: 80px;
+
+  line-height: 80px;
+
+  margin: 0px;
+
+  padding: 0px;
+
+  font-size: 34px;
+
+  font-weight: bold;
+
+  color: #ffffff;
+
+  border: 1px solid #969da4;
+
+  background: url("../img/bg-blue-dot.svg") no-repeat center;
+}
+
+.num-dia {
+  display: inline-block;
+
+  color: #969da4;
+
+  font-size: 16px;
+
+  font-weight: bold;
+
+  position: absolute;
+
+  left: 20px;
+
+  top: 5px;
+}
+
+.inactive .cant-reservas {
+  color: #969da4;
+
+  background: url("../img/bg-white-dot.svg") no-repeat center #eeeeee;
+}
+
+.feriado .cant-reservas {
+  background: url("../img/bg-grey-dot.svg") no-repeat center;
+}
+
+.selected .cant-reservas {
+  background-color: #969da4;
+}
+
+.selected .num-dia {
+  color: #ffffff;
+}
+
+.btn-agregar-reserva {
+  display: none;
+
+  /*width: 22px;
+
+    height: 22px;*/
+
+  /*width: 75%;
+
+    height: 100%;*/
+
+  width: 52px;
+
+  /*background: url("../img/agregar-ampliar.svg") no-repeat center #00b500;*/
+
+  text-indent: -9999px;
+
+  overflow: hidden;
+
+  position: absolute;
+
+  right: -15px;
+
+  bottom: 0px;
+
+  margin: 0px;
+
+  padding: 0px;
+}
+
+.btn-agregar-reserva:after {
+  content: " ";
+
+  display: block;
+
+  width: 22px;
+
+  height: 22px;
+
+  background: url("../img/agregar-ampliar.svg") no-repeat center #00b500;
+
+  position: absolute;
+
+  bottom: 0px;
+
+  right: 30px;
+}
+
+/*
+
+    Día ampliado
+
+*/
+
+.buscar-reserva {
+  width: 21%;
+
+  float: left;
+
+  margin-right: 20px;
+
+  height: 42px;
+
+  padding: 15px 10px 10px;
+}
+
+.buscar-fecha {
+  width: 12%;
+
+  padding: 10px;
+}
+
+.buscar-tipo {
+  width: 19%;
+}
+
+.buscar-barrios {
+  width: 21%;
+}
+
+/*
+
+    Order by
+
+*/
+
+.sorting_asc,
+.sorting_des {
+  position: relative;
+}
+
+.sorting_asc:after {
+  content: "asc";
+
+  display: block;
+
+  width: 10px;
+
+  height: 48px;
+
+  text-indent: -999px;
+
+  overflow: hidden;
+
+  background: url("../img/filter-down.svg") no-repeat center;
+
+  position: absolute;
+
+  right: 10px;
+
+  top: 0px;
+}
+
+.sorting_des:after {
+  content: "des";
+
+  display: block;
+
+  width: 10px;
+
+  height: 48px;
+
+  text-indent: -999px;
+
+  overflow: hidden;
+
+  background: url("../img/filter-up.svg") no-repeat center;
+
+  position: absolute;
+
+  right: 10px;
+
+  top: 0px;
+}
+
+/* table */
+
+.admin-table {
+  max-height: 389px;
+
+  overflow: hidden;
+
+  overflow-y: visible;
+
+  margin-bottom: 30px;
+}
+
+.acciones .eliminar {
+  display: block;
+
+  width: 15px;
+
+  height: 20px;
+
+  overflow: hidden;
+
+  color: transparent;
+
+  background: url("../img/estados-tabla.svg") no-repeat;
+
+  background-position: center -316px;
+
+  margin: 0px auto;
+}
+
+.column-acciones {
+  width: 90px;
+}
+
+.admin-table .table,
+.reservas-dia-ampliado .table {
+  margin-bottom: 10px;
+}
+
+.admin-table .table tr:nth-child(even),
+.reservas-dia-ampliado .table tr:nth-child(even) {
+  background-color: #eeeeee;
+}
+
+.admin-table thead,
+.reservas-dia-ampliado thead {
+  background: #434c55;
+
+  color: #ffffff;
+
+  font-weight: normal;
+
+  font-size: 12px;
+
+  line-height: 45px;
+}
+
+.admin-table .table tr th,
+.reservas-dia-ampliado .table tr th {
+  padding: 15px;
+
+  font-weight: normal;
+}
+
+.table > tbody > tr > td > span {
+  font-size: 10px;
+}
+
+.table .estado {
+  display: inline-block;
+
+  width: 50%;
+
+  height: 25px;
+
+  overflow: hidden;
+
+  float: left;
+
+  text-indent: -99999px;
+
+  background: url("../img/estados-tabla.svg") no-repeat;
+}
+
+.table .estado.aprobada {
+  background-position: center -206px;
+}
+
+.table .estado.aprobada.activo {
+  background-position: center 4px;
+}
+
+.table .estado.no-aprobada {
+  background-position: center -316px;
+}
+
+.table .estado.no-aprobada.activo {
+  background-position: center -97px;
+}
+
+.table .pendiente {
+  background: #f40b0b;
+}
+
+.table .pendiente .estado.aprobada {
+  background-position: center -435px;
+}
+
+.table .pendiente .estado.no-aprobada {
+  background-position: center -575px;
+}
+
+.table .medio {
+  display: inline-block;
+
+  text-indent: -9999px;
+
+  overflow: hidden;
+
+  width: 100%;
+
+  height: 100%;
+}
+
+.table .medio.tranka {
+  background: url("../img/black-logo.svg") no-repeat left center;
+}
+
+.referencia {
+  margin: 0px 0px 10px;
+
+  padding: 0px;
+
+  overflow: hidden;
+
+  float: right;
+}
+
+.referencia li {
+  list-style-type: none;
+
+  float: left;
+
+  margin-left: 15px;
+
+  font-size: 10px;
+
+  color: #434c55;
+}
+
+.referencia .pendientes:before {
+  content: " ";
+
+  display: block;
+
+  width: 8px;
+
+  height: 8px;
+
+  background-color: #f40b0b;
+
+  float: left;
+
+  margin: 3px 3px 0px 0px;
+}
+
+.referencia .aprobada {
+  padding-left: 17px;
+
+  background: url("../img/estados-tabla.svg") no-repeat;
+
+  background-size: 14px;
+
+  background-position: left 2px;
+}
+
+.referencia .no-aprobada {
+  padding-left: 17px;
+
+  background: url("../img/estados-tabla.svg") no-repeat;
+
+  background-size: 12px;
+
+  background-position: left -74px;
+}
+
+.imprimir-listado {
+  text-transform: uppercase;
+
+  line-height: 40px;
+
+  padding: 0px 15px 0px 39px;
+
+  margin: 10px 0px 30px;
+
+  background-image: url("../img/clip.svg");
+
+  background-repeat: no-repeat;
+
+  background-position: 12px center;
+}
+
+/*
+
+    Perfil restaurante
+
+*/
+
+.card {
+  color: #434c55;
+
+  font-size: 13px;
+
+  margin: 20px 0px;
+
+  padding-left: 40px;
+
+  min-height: 25px;
+}
+
+.card h3 {
+  font-size: 13px;
+
+  font-weight: bold;
+
+  color: #434c55;
+
+  margin: 0px;
+}
+
+.card p {
+  padding: 0px;
+
+  margin: 0px;
+
+  line-height: 18px;
+}
+
+.horarios-reservas {
+  background: url("../img/campana.svg") no-repeat left top;
+}
+
+.tipo-restaurant {
+  background: url("../img/perfil-reservas.svg") no-repeat left top;
+}
+
+.horarios {
+  background: url("../img/perfil-horarios.svg") no-repeat left top;
+}
+
+.ubicacion {
+  background: url("../img/perfil-ubicacion.svg") no-repeat left top;
+}
+
+.ambiente {
+  background: url("../img/perfil-comodida.svg") no-repeat left top;
+}
+
+.precios {
+  background: url("../img/perfil-precio.svg") no-repeat left top;
+}
+
+.descripcion {
+  background: url("../img/perfil-descripcion.svg") no-repeat left top;
+}
+
+.boton-editar {
+  background-image: url("../img/editar.svg");
+
+  background-repeat: no-repeat;
+
+  background-position: 10px center;
+
+  line-height: 40px;
+
+  padding: 0px 10px 0px 40px;
+}
+
+/*
+
+    Editar perfil
+
+*/
+
+.editar-perfil-restaurant h4 {
+  color: #434c55;
+
+  font-size: 15px;
+
+  font-weight: bold;
+
+  margin-bottom: 15px;
+}
+
+.editar-perfil-restaurant label {
+  font-size: 13px;
+
+  color: #999999;
+
+  font-weight: normal;
+
+  clear: both;
+}
+
+.editar-perfil-restaurant input {
+  padding: 10px;
+}
+
+.horarios-funcionamiento p {
+  font-size: 13px;
+
+  color: #999999;
+}
+
+.borrar-item {
+  padding-left: 0px;
+
+  overflow: hidden;
+
+  height: 40px;
+
+  margin-top: 25px;
+}
+
+.borrar-item a {
+  background: url("../img/estados-tabla.svg") no-repeat left -93px;
+
+  text-indent: -999px;
+
+  display: inline-block;
+
+  width: 100%;
+
+  height: 100%;
+}
+
+.agregar-item {
+  color: #00b500;
+
+  display: inline-block;
+
+  text-transform: uppercase;
+
+  font-size: 14px;
+
+  margin: 5px 0px;
+}
+
+.agregar-item:before {
+  content: "+";
+
+  font-size: 23px;
+
+  margin-right: 8px;
+
+  line-height: 9px;
+
+  margin-top: 10px;
+
+  display: inline-block;
+
+  height: 16px;
+}
+
+#upload-perfil {
+  /*    float: left;
+
+    width: 88%; */
+
+  position: absolute;
+
+  /*left:21px;*/
+}
+
+#slider_0 input.form-control.upload-file-input {
+  position: absolute;
+
+  /*left: 22px;*/
+
+  width: 200% !important;
+}
+
+.upload-files label {
+  display: block;
+}
+
+.upload-perfil {
+  overflow: hidden;
+}
+
+.upload-perfil label {
+  display: block;
+}
+
+.upload {
+  display: inline-block;
+
+  text-indent: -999px;
+
+  overflow: hidden;
+
+  background-image: url("../img/upload.svg");
+
+  background-repeat: no-repeat;
+
+  background-position: center;
+
+  width: 8%;
+
+  height: 40px;
+
+  float: right;
+}
+
+#upload-slide {
+  float: left;
+
+  width: 80%;
+}
+
+.upload-slide {
+  margin-left: 10px;
+}
+
+.upload-slide,
+.borrar-slide {
+  float: left;
+}
+
+.borrar-slide {
+  width: 9%;
+
+  margin: 0px;
+
+  padding-left: 10px;
+}
+
+.aceptar-cancelar-form {
+  text-align: right;
+
+  float: right;
+
+  display: inline-block;
+
+  margin-bottom: 30px;
+
+  overflow: hidden;
+}
+
+.aceptar-cancelar-form .btn {
+  max-width: 50%;
+
+  float: left;
+
+  line-height: 40px;
+
+  padding: 0px 30px 0px 50px !important;
+
+  text-transform: uppercase;
+
+  background-image: url("../img/estados-tabla.svg");
+
+  background-repeat: no-repeat;
+}
+
+.aceptar-cancelar-form .boton-aceptar {
+  background-position: 13px -426px;
+}
+
+.aceptar-cancelar-form .btn-danger {
+  background-position: 13px -566px;
+}
+
+/*
+
+    RED ALERTS
+
+*/
+
+.red-alert {
+  display: none;
+
+  margin: -30px 0px 20px 0px;
+
+  width: 100%;
+
+  padding: 5px 0px;
+
+  line-height: 23px;
+
+  font-size: 12px;
+
+  color: #ffffff;
+
+  background: #f40b0b;
+
+  overflow: hidden;
+}
+
+.red-alert p {
+  display: inline-block;
+
+  margin: 0px;
+
+  padding: 0px;
+}
+
+.red-alert span {
+  font-weight: bold;
+}
+
+.close-alert {
+  display: inline-block;
+
+  float: right;
+
+  width: 25px;
+
+  height: 25px;
+
+  overflow: hidden;
+
+  text-indent: -99999px;
+
+  background: url("../img/estados-tabla.svg") no-repeat center -575px;
+}
+
+.ver-alerta .red-alert {
+  display: block;
+}
+
+/*
+
+    Reserva ampliada
+
+*/
+
+.detalles-reserva {
+  border-top: 1px solid #cccccc;
+
+  border-bottom: 1px solid #cccccc;
+
+  margin-bottom: -1px;
+
+  padding-top: 15px;
+
+  padding-bottom: 15px;
+
+  padding-left: 25px;
+
+  font-size: 12px;
+
+  color: #434c55;
+
+  overflow: hidden;
+
+  background: url("../img/sprite-reserva-ampliada.svg") no-repeat;
+
+  min-height: 60px;
+}
+
+.cliente {
+  background-position: 0px 20px;
+}
+
+.estado-reserva {
+  background-position: 0px -212px;
+
+  padding-left: 40px;
+}
+
+.estado-reserva p,
+.estado-reserva a {
+  display: inline-block;
+
+  line-height: 23px;
+}
+
+.estado-reserva a {
+  width: 25px;
+
+  height: 25px;
+
+  overflow: hidden;
+
+  float: left;
+
+  margin-right: 15px;
+
+  text-indent: -9999px;
+
+  background: url("../img/aceptar-cancelar-azul.svg") no-repeat;
+}
+
+.estado-reserva .aprobada {
+  background-position: center -135px;
+}
+
+.estado-reserva .aprobada.activo {
+  background: url("../img/estados-tabla.svg") no-repeat center 6px;
+}
+
+.estado-reserva .no-aprobada {
+  background-position: center 5px;
+}
+
+.estado-reserva .no-aprobada.activo {
+  background: url("../img/estados-tabla.svg") no-repeat center -96px;
+}
+
+.dia {
+  background-position: 0px -410px;
+}
+
+.cantidad {
+  background-position: 0px -602px;
+}
+
+.tipo {
+  background-position: 0px -782px;
+}
+
+.comentarios {
+  padding: 15px 0px;
+
+  color: #434c55;
+
+  font-size: 13px;
+}
+
+.comentarios span {
+  font-weight: bold;
+
+  display: block;
+
+  margin-bottom: 10px;
+}
+
+.detalles-reserva span {
+  font-weight: bold;
+}
+
+.detalles-reserva p {
+  margin: 0px;
+}
+
+/* bootsrap customizations */
+
+a:hover {
+  text-decoration: none;
+
+  cursor: pointer;
+
+  opacity: 0.8;
+}
+
+select {
+  appearance: none;
+
+  -moz-appearance: none;
+
+  -webkit-appearance: none;
+
+  background: url("../img/select-arrow.png") no-repeat bottom right !important;
+
+  background-size: 10px !important;
+
+  border: 1px solid #969da4;
+
+  border-radius: 0px;
+
+  padding: 0px 20px;
+
+  line-height: 40px;
+
+  width: 25%;
+
+  margin-right: 25px;
+
+  outline: none;
+}
+
+.table-bordered > tbody > tr > td,
+.table-bordered > tbody > tr > th,
+.table-bordered > tfoot > tr > td,
+.table-bordered > tfoot > tr > th,
+.table-bordered > thead > tr > td,
+.table-bordered > thead > tr > th {
+  border: 1px solid #969da4;
+}
+
+.table > tbody > tr > td,
+.table > tbody > tr > th,
+.table > tfoot > tr > td,
+.table > tfoot > tr > th,
+.table > thead > tr > td,
+.table > thead > tr > th {
+  font-size: 12px;
+}
+
+.modal-dialog {
+  width: 310px;
+
+  max-width: 90%;
+
+  overflow: hidden;
+}
+
+.modal-content {
+  overflow: hidden;
+
+  border-radius: 0px;
+
+  -webkit-border-radius: 0px;
+
+  -moz-border-radius: 0px;
+
+  color: #434c55;
+}
+
+.modal-header {
+  border-bottom: 0px none;
+
+  padding: 0px !important;
+
+  min-height: 20px;
+}
+
+.modal-content {
+  position: relative;
+}
+
+.modal-header .close {
+  display: inline-block;
+
+  width: 25px;
+
+  height: 25px;
+
+  overflow: hidden;
+
+  text-indent: -99999px;
+
+  background: url("../img/estados-tabla.svg") no-repeat center -316px;
+
+  position: absolute;
+
+  right: 10px;
+
+  top: 10px;
+}
+
+.modal-content h4 {
+  font-size: 15px;
+
+  font-weight: bold;
+
+  margin: 0px 0px 20px 0px;
+
+  color: #434c55;
+}
+
+.modal-content label {
+  font-size: 13px;
+
+  color: #999999;
+}
+
+.modal-content .aceptar-cancelar-form {
+  margin: 20px 0px;
+}
+
+select.form-select {
+  height: 42px;
+
+  margin-bottom: 15px;
+}
+
+.admin-nueva-reserva input {
+  height: 40px;
+}
+
+.admin-tranka-reservas .buscar-restuarante,
+.admin-tranka-reservas .buscar-cliente,
+.admin-tranka-reservas .buscar-tipo {
+  width: 25%;
+}
+
+/* tabla de reservas */
+
+td.realizada {
+  width: 115px;
+
+  overflow: hidden;
+}
+
+.realizada a {
+  width: 50%;
+
+  text-align: center;
+
+  overflow: hidden;
+
+  height: 25px;
+
+  display: inline-block;
+
+  background: url("../img/realizadaadmintranka.svg") no-repeat;
+
+  color: transparent;
+
+  text-indent: -9999px;
+}
+
+.realizada .star {
+  float: left;
+
+  background-position: center -8px;
+}
+
+.realizada.blue .star {
+  background-position: center -352px;
+}
+
+.realizada .star.si-realizada {
+  background-position: center -168px;
+}
+
+.realizada .cross {
+  float: right;
+
+  background-position: center -718px;
+}
+
+.realizada.blue .cross {
+  background-position: center -913px;
+}
+
+.realizada .cross.no-realizada {
+  background-position: center -537px;
+}
+
+.form-group select {
+  width: 100%;
+  margin: 0px;
+}
+
+.admin-tranka-clientes #txtNombre {
+  margin-top: -4px;
+}
+
+.upload-file {
+  overflow: hidden;
+
+  width: 100%;
+
+  position: relative;
+
+  min-height: 65px;
+}
+
+.upload-file-wrapper {
+  overflow: hidden;
+
+  width: 100%;
+}
+
+.upload-file-input {
+  width: 200% !important;
+
+  position: absolute;
+
+  left: 0px;
+
+  border: 0px;
+
+  z-index: 9;
+
+  border: 0px transparent;
+
+  box-shadow: 0px;
+
+  -webkit-box-shadow: none;
+
+  -moz-box-shadow: none;
+
+  margin-left: -149px;
+}
+
+.upload-file-input:focus {
+  border: 0px transparent;
+}
+
+.upload-file-wrapper {
+  height: 40px;
+
+  border: 1px solid #969da4;
+
+  width: 88%;
+
+  float: left;
+}
+
+input[type="file"]:focus,
+input[type="checkbox"]:focus,
+input[type="radio"]:focus {
+  outline: thin dotted;
+
+  outline: none;
+
+  outline-offset: 0px;
+}
+
+.dia-calendario-actual {
+  color: #ff0000 !important;
+}
+
+.borde-calendario-actual {
+  border-color: #ff0000 !important;
+}
+
+.sliderDiv {
+  overflow: hidden;
+
+  clear: both;
+}
+
+input.form-control.upload-file-input {
+  /*left: 21px;*/
+}
+
+.modal {
+  top: 6%;
+}
+
+.modal-dialog {
+  padding: 1%;
+}
+
+.modal-content {
+  border-radius: 0px;
+
+  padding-top: 20px;
+}
+
+.modal-body {
+  padding-top: 110px;
+
+  background-image: url("../img/modalRegister.png");
+
+  background-repeat: no-repeat;
+
+  background-position: center 20px;
+}
+
+.modal-body p {
+  font-size: 15px;
+
+  text-align: center;
+}
+
+.modal-body a {
+  float: right;
+}
+
+.modal-body textarea {
+  float: right;
+}

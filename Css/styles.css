@@ -1,0 +1,42 @@
+.container-subtotal {
+  --bg-subtotal: #2e7d32;
+  font-size: 1rem;
+}
+
+.subtotal {
+  padding: 1rem;
+  background-color: var(--bg-subtotal);
+  text-align: center;
+  box-shadow: 0 0 8px #003300;
+}
+
+.subtotal-price {
+  color: #fff;
+  font-size: 2.5rem;
+  text-transform: uppercase;
+}
+
+.subtotal-integrante {
+  font-size: 2rem;
+  background-color: rgb(214, 147, 22);
+  text-transform: uppercase;
+}
+
+.subtotal-price-integrante {
+  font-size: 2.5rem;
+  color: #fff;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 0 8px #ceba08;
+}
+
+textarea {
+  resize: none;
+}
+
+@media screen and (min-width: 990px) {
+  .subtotal {
+    right: 6rem;
+    top: 2rem;
+  }
+}

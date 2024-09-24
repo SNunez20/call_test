@@ -1,0 +1,14 @@
+{
+    "lengthMenu": "Mostrar _MENU_ &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;    ",
+    "zeroRecords": "No hay datos ingresados",
+    "info": "Pagina _PAGE_ de _PAGES_",
+    "infoEmpty": "No hay datos para mostrar",
+    "infoFiltered": "(Filtrado por busqueda  _MAX_ )",
+    "search": "Buscar",
+    "paginate": {
+        "previous": "Anterior",
+        "next": "Siguiente"
+    },
+    "responsive": true
+
+}
