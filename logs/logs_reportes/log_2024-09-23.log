@@ -1,8 +1,0 @@
-[LOG][2024-09-23]|datos guardados id_cliente 65608, id historico: 52221|
-[LOG][2024-09-23]|servicio 4 guardado id historico: 52221|
-[LOG][2024-09-23]|servicio 20 guardado id historico: 52221|
-[LOG][2024-09-23]|direcion guardada/actualizada en padron: 3419113| query: UPDATE direcciones_socios SET calle = 'Prueba', puerta = '1234', apartamento = '', manzana = '', solar = '', esquina = 'Prueba', referencia = 'Prueba' WHERE cedula_socio = '3419113'
-[LOG][2024-09-23]|datos guardados id_cliente 65608, id historico: 52222|
-[LOG][2024-09-23]|servicio 4 guardado id historico: 52222|
-[LOG][2024-09-23]|servicio 20 guardado id historico: 52222|
-[LOG][2024-09-23]|direcion guardada/actualizada en padron: 3419113| query: INSERT INTO direcciones_socios (id_socio,calle,puerta,manzana,solar,apartamento,esquina,referencia,cedula_socio) VALUES (130874,'Prueba','1234','','','','Prueba','Prueba','3419113')

@@ -3,7 +3,9 @@ header('Access-Control-Allow-Origin: *');
 
 require_once "../../../_conexion.php";
 require_once "../../../_conexion250.php";
-require_once "../guardarPadron.php";
+require_once "../../../_conexion1310.php";
+require_once "../../../_conexion250_TOCS.php";
+require_once "guardarPadron_inspira.php";
 require_once "../functions.php";
 
 $response = array(
@@ -171,11 +173,11 @@ if (isset($_POST["typeAdmin"])) {
                             $response["guardado_padron"] = false;
                         } else {
 
-                            $response["guardado_padron"] = guardarPadron($id, $mysqli, $mysqli250, $cedulaAfiliado);
+                            $response["guardado_padron"] = guardarPadron($id, $mysqli, $mysqli250, $mysqli1310, $cedulaAfiliado);
                         }
                     }
                 } else {
-                    $response["guardado_padron"] = guardarPadron($id, $mysqli, $mysqli250, $cedulaAfiliado);
+                    $response["guardado_padron"] = guardarPadron($id, $mysqli, $mysqli250, $mysqli1310, $cedulaAfiliado);
                 }
 
                 if ($response["guardado_padron"]) {

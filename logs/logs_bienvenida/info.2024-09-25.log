@@ -1,0 +1,8 @@
+[25/09/2024 15:36:23] COBRO SOLICITADO PARA[CI]: 3419113 ORIGEN 3 
+[25/09/2024 15:36:23] [OK]: RECUPERAR [TABLE] padron_datos_socio [CI]: 3419113 
+[25/09/2024 15:36:23] [OK]: RECUPERAR [TABLE] padron_producto_socio: [CI]: 3419113 
+[25/09/2024 15:36:23] [OK]: GUARDAR [TABLE] padron_datos_socio [CI]: 3419113 
+[25/09/2024 15:36:23] [OK]: GUARDAR [TABLE] padron_producto_socio [CI]: 3419113 
+[25/09/2024 15:36:23] [OK]: GUARDAR [TABLE] padron_producto_socio [CI]: 3419113 
+[25/09/2024 15:36:23] [OK]: ACTUALIZACION accion [TABLE] padron_datos_socio [CI]: 3419113 
+[25/09/2024 15:36:23] [OK]: ACTUALIZACION accion [TABLE] padron_producto_socio [CI]: 3419113 
