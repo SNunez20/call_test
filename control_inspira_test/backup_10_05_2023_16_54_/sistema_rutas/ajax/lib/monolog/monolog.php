@@ -14,6 +14,3 @@ function Logger($nombre, $error, $tipo)
     $log->pushHandler(new StreamHandler("{$path}/{$nombre}"));
     $log->$tipo($error);
 }
-
-
-

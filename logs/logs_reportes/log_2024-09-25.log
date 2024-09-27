@@ -1,4 +1,0 @@
-[LOG][2024-09-25]|datos guardados id_cliente 65630, id historico: 52237|
-[LOG][2024-09-25]|servicio 06 guardado id historico: 52237|
-[LOG][2024-09-25]|servicio 08 guardado id historico: 52237|
-[LOG][2024-09-25]|direcion guardada/actualizada en padron: 3419113| query: UPDATE direcciones_socios SET calle = 'Prueba', puerta = '1234', apartamento = '', manzana = '', solar = '', esquina = 'Prueba', referencia = 'Prueba' WHERE cedula_socio = '3419113'

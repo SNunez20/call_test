@@ -1,12 +1,6 @@
 <?php
 require_once "../../../logger.php";
 
-function buscarCelular($numeros)
-{
-    preg_match_all('/(09)[1-9]{1}\d{6}/x', $numeros, $respuesta);
-    $respuesta = (count($respuesta[0]) !== 0) ? $respuesta[0] : false;
-    return $respuesta;
-}
 
 function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfiliado)
 {
@@ -14,8 +8,6 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
 
     $error             = false;
     $result            = false;
-    $qDatos            = "SELECT * FROM padron_datos_socio WHERE id = '$id_cliente'";
-    $rDatos            = mysqli_query($mysqli, $qDatos);
     $accion            = null;
     $datos_socio       = [];
     $retorno_servicios = false;
@@ -24,21 +16,30 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
     $omt               = false;
     $retornoHistorico  = false;
 
+    try {
+        $qDatos = "SELECT * FROM padron_datos_socio WHERE id = '$id_cliente'";
+        $rDatos = mysqli_query($mysqli, $qDatos);
+    } catch (\Throwable $errores) {
+        registrar_errores($qDatos, "guardarPadron_inspira.php", $errores);
+        $error = true;
+    }
+
+
     if ($rDatos) {
         while ($row = mysqli_fetch_assoc($rDatos)) {
-            $accion       = $row['accion'];
-            $idUser       = $row['id_usuario'];
-            $alta         = $row['alta'];
-            $metodo_pago  = $row['metodo_pago'];
-            $origen_venta = $row['origen_venta'];
-            $estadoActual = $row['estado'];
-            $idGrupoVendedor = 0;
+            $accion          = $row['accion'];
+            $idUser          = $row['id_usuario'];
+            $alta            = $row['alta'];
+            $metodo_pago     = $row['metodo_pago'];
+            $origen_venta    = $row['origen_venta'];
+            $estadoActual    = $row['estado'];
+            $idGrupoVendedor = obtenerGrupoUsuario($idUser);
 
             if ($origen_venta == 5) $origenVta = 'UDEMM';
-            else if (($idGrupoVendedor) == 10013) $origenVta = 'UCEM';
+            else if ($idGrupoVendedor == 10013) $origenVta = 'UCEM';
             else $origenVta = '';
 
-            $datos_socio = array(
+            $datos_socio = [
                 'nombre'                => $row['nombre'],
                 'tel'                   => $row['tel'],
                 'cedula'                => $row['cedula'],
@@ -85,30 +86,29 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
                 'nomodifica'            => $row['nomodifica'],
                 'origenVta'             => $origenVta,
                 'imp_desc'              => '',
-            );
+            ];
         }
-        logger("[OK]: RECUPERAR [TABLE] padron_datos_socio [CI]: $cedulaAfiliado", false);
-    } else if ($error = mysqli_error($mysqli)) {
-        logger("[ERROR]: $error [CI]: $cedulaAfiliado");
-        $error = true;
     }
 
     if (!$error) {
-
         $cedula          = $datos_socio['cedula'];
-        $qServicios      = "SELECT * FROM padron_producto_socio where cedula = '$cedula' AND accion='1'";
-        $rServicios      = mysqli_query($mysqli, $qServicios);
         $servicios_socio = [];
+
+        try {
+            $qServicios = "SELECT * FROM padron_producto_socio where cedula = '$cedula' AND accion='1'";
+            $rServicios = mysqli_query($mysqli, $qServicios);
+        } catch (\Throwable $errores) {
+            registrar_errores($qServicios, "guardarPadron_inspira.php", $errores);
+            $error = true;
+        }
 
         if ($rServicios) {
             while ($row = mysqli_fetch_assoc($rServicios)) {
 
                 // COMPRUEBA SI TIENE GRUPO FAMILIAR
-                if ($row["servicio"] == 63 || $row["servicio"] == 65) {
-                    $grupo_familiar = true;
-                }
+                if ($row["servicio"] == 63 || $row["servicio"] == 65) $grupo_familiar = true;
 
-                $servicios_socio[] = array(
+                $servicios_socio[] = [
                     'cedula'                 => $row['cedula'],
                     'servicio'               => $row['servicio'],
                     'hora'                   => $row['hora'],
@@ -146,47 +146,37 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
                     'precioOriginal'         => $row['precioOriginal'],
                     'abitab'                 => $row['abitab'],
                     'cedula_titular_gf'      => $row['cedula_titular_gf'],
-                );
+                ];
             }
-            logger("[OK]: RECUPERAR [TABLE] padron_producto_socio: [CI]: $cedulaAfiliado", false);
-        } else if ($error = mysqli_error($mysqli)) {
-            logger("[ERROR]: $error [CI]: $cedulaAfiliado");
-            $error = true;
         }
     }
 
     if (!$error) {
         if ($accion == '1') { //insertar nuevo socio en el padron
-            $campos        = array_keys($datos_socio);
-            $qInsertar     = "INSERT INTO padron_datos_socio VALUES(null,'" . implode("','", $datos_socio) . "')";
-            $retorno_datos = mysqli_query($mysqli250, $qInsertar);
-            if (!$retorno_datos) {
-                $error = mysqli_error($mysqli250);
-                logger("[ERROR AL GUARDAR DATOS DATOS]: $error [CI]: $cedulaAfiliado - QUERY:" . $qInsertar);
+            $campos = array_keys($datos_socio);
+            try {
+                $qInsertar = "INSERT INTO padron_datos_socio VALUES(null,'" . implode("','", $datos_socio) . "')";
+                $retorno_datos = mysqli_query($mysqli250, $qInsertar);
+            } catch (\Throwable $errores) {
+                registrar_errores($qInsertar, "guardarPadron_inspira.php", $errores);
                 $error = true;
-            } else {
-                $idSocioPadron = mysqli_insert_id($mysqli250); //dir2
-                logger("[OK]: GUARDAR [TABLE] padron_datos_socio [CI]: $cedulaAfiliado", false);
             }
-        } else if ($accion == '4' || $accion == '3') { //actualizar datos del socio en el padron
-            $qActualizar = "UPDATE padron_datos_socio SET ";
-            $data        = array();
+            if ($retorno_datos) $idSocioPadron = mysqli_insert_id($mysqli250); //dir2
+        } else if (in_array($accion, ["4", "3"])) { //actualizar datos del socio en el padron
+            $data = [];
             foreach ($datos_socio as $column => $value) {
-                $data[] = $column . "=" . "'" . $value . "'";
+                $data[] = "$column='$value'";
             }
-            $qActualizar .= implode(',', $data);
-            $qActualizar .= " where cedula = '" . $datos_socio['cedula'] . "'";
-            $retorno_datos = (mysqli_query($mysqli250, $qActualizar)) ? true : false;
-
-            if (!$retorno_datos) {
-                $error = mysqli_error($mysqli250);
-                logger("[ERROR AL ACTUALIZAR DATOS EN PADRON]: $error" . "CI: $cedulaAfiliado - QUERY: $qActualizar");
+            try {
+                $qActualizar = "UPDATE padron_datos_socio SET ";
+                $qActualizar .= implode(',', $data);
+                $qActualizar .= " WHERE cedula = '" . $datos_socio['cedula'] . "'";
+                $retorno_datos = mysqli_query($mysqli250, $qActualizar);
+            } catch (\Throwable $errores) {
+                registrar_errores($qActualizar, "guardarPadron_inspira.php", $errores);
                 $error = true;
-            } else {
-                logger("[OK]: ACTUALIZAR [TABLE] padron_datos_socio [CI]: $cedulaAfiliado", false);
             }
         } else {
-            logger("ACCION: $accion - CI: $cedulaAfiliado");
             $error = true;
         }
     }
@@ -197,39 +187,31 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
         for ($i = 0; $i < count($servicios_socio); $i++) {
             $campos = array_keys($servicios_socio[$i]);
             if (!in_array($servicios_socio[$i]['servicio'], ["08", "110"])) $totalIncremento += (int) $servicios_socio[$i]['importe'];
-            $qInsertarServicios = "INSERT INTO  padron_producto_socio (" . implode(',', $campos) . ") VALUES('" . implode("','", $servicios_socio[$i]) . "')";
-            $result             = mysqli_query($mysqli250, $qInsertarServicios);
-            $retorno_servicios  = ($result) ? true : false;
-            if (!$retorno_servicios) {
-                $error = mysqli_error($mysqli250);
-                logger("[ERROR AL GUARDAR PRODUCTOS]: $error [CI]: $cedulaAfiliado");
+            try {
+                $qInsertarServicios = "INSERT INTO padron_producto_socio (" . implode(',', $campos) . ") VALUES('" . implode("','", $servicios_socio[$i]) . "')";
+                $retorno_servicios = mysqli_query($mysqli250, $qInsertarServicios);
+            } catch (\Throwable $errores) {
+                registrar_errores($qInsertarServicios, "guardarPadron_inspira.php", $errores);
                 $error = true;
-            } else {
-                logger("[OK]: GUARDAR [TABLE] padron_producto_socio [CI]: $cedulaAfiliado", false);
             }
         }
 
         if ($retorno_servicios) {
             // ACTUALIZA LA ACCION A 5 TANTO EN DATOS COMO PRODUCTOS PARA INDICAR QUE PASO A PADRON
-            $qActualizarAccionDatos = "UPDATE padron_datos_socio set accion = '5' where cedula = $cedulaAfiliado";
-            $result                 = mysqli_query($mysqli, $qActualizarAccionDatos);
-
-            if (!$result) {
-                $error = mysqli_error($mysqli);
-                logger("[ERROR AL ACTUALIZAR ACCION EN DATOS]: $error C.I: $cedulaAfiliado");
+            try {
+                $qActualizarAccionDatos = "UPDATE padron_datos_socio set accion = '5' where cedula = $cedulaAfiliado";
+                $result = mysqli_query($mysqli, $qActualizarAccionDatos);
+            } catch (\Throwable $errores) {
+                registrar_errores($qActualizarAccionDatos, "guardarPadron_inspira.php", $errores);
                 $error = true;
-            } else {
-                logger("[OK]: ACTUALIZACION accion [TABLE] padron_datos_socio [CI]: $cedulaAfiliado", false);
             }
 
-            $qActualizarAcccionProductos = "UPDATE padron_producto_socio set accion='5' where cedula = $cedulaAfiliado";
-            $result                      = mysqli_query($mysqli, $qActualizarAcccionProductos);
-
-            if (!$result) {
-                logger(mysqli_error($mysqli));
+            try {
+                $qActualizarAcccionProductos = "UPDATE padron_producto_socio set accion = '5' where cedula = $cedulaAfiliado";
+                $result = mysqli_query($mysqli, $qActualizarAcccionProductos);
+            } catch (\Throwable $errores) {
+                registrar_errores($qActualizarAcccionProductos, "guardarPadron_inspira.php", $errores);
                 $error = true;
-            } else {
-                logger("[OK]: ACTUALIZACION accion [TABLE] padron_producto_socio [CI]: $cedulaAfiliado", false);
             }
         }
 
@@ -241,15 +223,19 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
             $cedulasBenficiarios = [];
 
             // RECUPERA TODOS LOS BENEFICIARIOS
-            $query = "SELECT * FROM padron_producto_socio WHERE cedula_titular_gf = '$cedulaAfiliado'";
-            $result = mysqli_query($mysqli, $query);
-            if (!$result) logger("[ERROR CONSULTA EN padron_producto_socio]: " . mysqli_error($mysqli) . " [CI]: $cedulaAfiliado query: $query");
+            try {
+                $query = "SELECT * FROM padron_producto_socio WHERE cedula_titular_gf = '$cedulaAfiliado'";
+                $result = mysqli_query($mysqli, $query);
+            } catch (\Throwable $errores) {
+                registrar_errores($query, "guardarPadron_inspira.php", $errores);
+                $error = true;
+            }
 
             if ($result) {
                 while ($row = mysqli_fetch_assoc($result)) {
                     $ciBeneficiario = $row['cedula'];
                     // SERVICIOS DEL BENEFICIARIO
-                    $servicios_beneficiario = array(
+                    $servicios_beneficiario = [
                         'cedula'                 => $row['cedula'],
                         'servicio'               => $row['servicio'],
                         'hora'                   => $row['hora'],
@@ -287,16 +273,15 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
                         'precioOriginal'         => $row['precioOriginal'],
                         'abitab'                 => $row['abitab'],
                         'cedula_titular_gf'      => $row['cedula_titular_gf'],
-                    );
+                    ];
 
                     $campos = array_keys($servicios_beneficiario);
-                    $query  = "INSERT INTO padron_producto_socio(" . implode(',', $campos) . ") VALUES('" . implode("','", $servicios_beneficiario) . "')";
-
-                    if ($result2 = mysqli_query($mysqli250, $query)) {
-                        logger("[OK]: GUARDAR [TABLE] padron_producto_socio - BENEFICIARIO $ciBeneficiario", false);
-                    } else {
-                        $error = mysqli_error($mysqli250);
-                        logger("[ERROR AL GUARDAR DATOS BENEFICIARIO]: $error CI: $ciBeneficiario");
+                    try {
+                        $query  = "INSERT INTO padron_producto_socio(" . implode(',', $campos) . ") VALUES('" . implode("','", $servicios_beneficiario) . "')";
+                        $result2 = mysqli_query($mysqli250, $query);
+                    } catch (\Throwable $errores) {
+                        registrar_errores($query, "guardarPadron_inspira.php", $errores);
+                        $error = true;
                     }
 
                     // GUARDO LAS CEDULAS DE LOS BENEFICIARIOS
@@ -310,13 +295,17 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
             if (count($cedulasBenficiarios) > 0) {
                 foreach ($cedulasBenficiarios as $key => $ci) {
                     // DATOS DEL BENEFICIARIO
-                    $query  = "SELECT * FROM padron_datos_socio WHERE cedula = '$ci'";
-                    $result = mysqli_query($mysqli, $query);
-                    if (!$result) logger("[ERROR CONSULTA EN padron_datos_socio]: " . mysqli_error($mysqli) . " [CI]: $ci query: $query");
+                    try {
+                        $query  = "SELECT * FROM padron_datos_socio WHERE cedula = '$ci'";
+                        $result = mysqli_query($mysqli, $query);
+                    } catch (\Throwable $errores) {
+                        registrar_errores($query, "guardarPadron_inspira.php", $errores);
+                        $error = true;
+                    }
 
                     if (mysqli_num_rows($result) > 0) {
                         $row                = mysqli_fetch_assoc($result);
-                        $datos_beneficiario = array(
+                        $datos_beneficiario = [
                             'nombre'                => $row['nombre'],
                             'tel'                   => $row['tel'],
                             'cedula'                => $ci,
@@ -361,18 +350,29 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
                             'radioViejo'            => $row['radioViejo'],
                             'extra'                 => $row['extra'],
                             'nomodifica'            => $row['nomodifica'],
-                        );
+                        ];
 
                         $campos = array_keys($datos_beneficiario);
-                        $query  = "INSERT INTO  padron_datos_socio (" . implode(',', $campos) . ") VALUES('" . implode("','", $datos_beneficiario) . "')";
+                        try {
+                            $query  = "INSERT INTO padron_datos_socio (" . implode(',', $campos) . ") VALUES('" . implode("','", $datos_beneficiario) . "')";
+                            $result4 = mysqli_query($mysqli250, $query);
+                        } catch (\Throwable $errores) {
+                            registrar_errores($query, "guardarPadron_inspira.php", $errores);
+                            $error = true;
+                        }
 
-                        if ($result4 = mysqli_query($mysqli250, $query)) {
-                            logger("[OK]: GUARDAR [TABLE] padron_datos_socio - BENEFICIARIO $ci", false);
+
+                        if ($result4) {
                             //dir2
                             $idSocioPadronBen = mysqli_insert_id($mysqli250);
-                            $qDatosDir = "SELECT calle,puerta,manzana,solar,apartamento,esquina,referencia FROM direcciones_socios WHERE cedula_socio ='$ci'";
-                            $rDatosDir = mysqli_query($mysqli, $qDatosDir);
-                            if (!$rDatosDir) logger("[ERROR CONSULTA EN direcciones_socios]: " . mysqli_error($mysqli) . " [CI]: $ci query: $qDatosDir");
+                            try {
+                                $qDatosDir = "SELECT calle,puerta,manzana,solar,apartamento,esquina,referencia FROM direcciones_socios WHERE cedula_socio ='$ci'";
+                                $rDatosDir = mysqli_query($mysqli, $qDatosDir);
+                            } catch (\Throwable $errores) {
+                                registrar_errores($qDatosDir, "guardarPadron_inspira.php", $errores);
+                                $error = true;
+                            }
+
 
                             if ($rDatosDir && mysqli_num_rows($rDatosDir) > 0) {
                                 $row        = mysqli_fetch_assoc($rDatosDir);
@@ -384,17 +384,14 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
                                 $esquina    = mysqli_real_escape_string($mysqli250, $row['esquina']);
                                 $referencia = mysqli_real_escape_string($mysqli250, $row['referencia']);
 
-                                $qInsertDireccion = "INSERT INTO direcciones_socios (id_socio,calle,puerta,manzana,solar,apartamento,esquina,referencia,cedula_socio) VALUES ($idSocioPadronBen,'$calle','$puerta','$manzana','$solar','$apto','$esquina','$referencia','$ci')";
-                                $rDir = mysqli_query($mysqli250, $qInsertDireccion);
-
-                                if (!$rDir) {
-                                    $error = mysqli_error($mysqli250);
-                                    logger("[ERROR AL GUARDAR DATOS DE DIRECCION BENEFICIARIO]: $error [CI]: $ci query: $qInsertDireccion ");
+                                try {
+                                    $qInsertDireccion = "INSERT INTO direcciones_socios (id_socio,calle,puerta,manzana,solar,apartamento,esquina,referencia,cedula_socio) VALUES ($idSocioPadronBen,'$calle','$puerta','$manzana','$solar','$apto','$esquina','$referencia','$ci')";
+                                    $rDir = mysqli_query($mysqli250, $qInsertDireccion);
+                                } catch (\Throwable $errores) {
+                                    registrar_errores($qInsertDireccion, "guardarPadron_inspira.php", $errores);
+                                    $error = true;
                                 }
                             }
-                        } else {
-                            $error = mysqli_query($mysqli250, $query);
-                            logger("[ERROR AL GUARDAR DATOS BENEFICIARIO]: $error [CI]: $ci");
                         }
                     }
                 }
@@ -402,22 +399,31 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
         }
 
         if ($grupo_familiar) {
-
-            $query = "SELECT cedula FROM padron_producto_socio WHERE cedula_titular_gf = '$cedulaAfiliado'";
-            $result = mysqli_query($mysqli, $query);
-            if (!$result) logger("[ERROR CONSULTA EN padron_producto_socio]: " . mysqli_error($mysqli) . " [CI]: $cedulaAfiliado query: $query");
+            try {
+                $query = "SELECT cedula FROM padron_producto_socio WHERE cedula_titular_gf = '$cedulaAfiliado'";
+                $result = mysqli_query($mysqli, $query);
+            } catch (\Throwable $errores) {
+                registrar_errores($query, "guardarPadron_inspira.php", $errores);
+                $error = true;
+            }
 
             if ($result) {
                 while ($row = mysqli_fetch_assoc($result)) {
                     $ci = $row["cedula"];
-
-                    $q1 = "UPDATE padron_datos_socio SET accion='5' WHERE cedula='$ci'";
-                    $qr1 = mysqli_query($mysqli, $q1);
-                    if (!$qr1) logger("[ERROR UPDATE EN padron_datos_socio]: " . mysqli_error($mysqli) . " [CI]: $ci query: $q1");
-
-                    $q2 = "UPDATE padron_producto_socio SET accion='5' WHERE cedula='$ci'";
-                    $qr2 = mysqli_query($mysqli, $q2);
-                    if (!$qr2) logger("[ERROR UPDATE EN padron_producto_socio]: " . mysqli_error($mysqli) . " [CI]: $ci query: $q2");
+                    try {
+                        $q1 = "UPDATE padron_datos_socio SET accion='5' WHERE cedula='$ci'";
+                        $qr1 = mysqli_query($mysqli, $q1);
+                    } catch (\Throwable $errores) {
+                        registrar_errores($q1, "guardarPadron_inspira.php", $errores);
+                        $error = true;
+                    }
+                    try {
+                        $q2 = "UPDATE padron_producto_socio SET accion='5' WHERE cedula='$ci'";
+                        $qr2 = mysqli_query($mysqli, $q2);
+                    } catch (\Throwable $errores) {
+                        registrar_errores($q2, "guardarPadron_inspira.php", $errores);
+                        $error = true;
+                    }
                 }
             }
         }
@@ -425,9 +431,13 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
         // ! #################################################################################
         // ! COMPRUEBA SI EXISTE ALGUN BENEFICIARIO OMT#
         // ! #################################################################################
-        $qOmt = "SELECT cedula,importe from padron_producto_socio WHERE servicio='70' AND cedula_titular_gf = '$cedulaAfiliado' AND abm='ALTA'";
-        $resultomt = mysqli_query($mysqli, $qOmt);
-        if (!$resultomt) logger("[ERROR CONSULTA EN padron_producto_socio]: " . mysqli_error($mysqli) . " [CI]: $cedulaAfiliado query: $qOmt");
+        try {
+            $qOmt = "SELECT cedula,importe from padron_producto_socio WHERE servicio='70' AND cedula_titular_gf = '$cedulaAfiliado' AND abm='ALTA'";
+            $resultomt = mysqli_query($mysqli, $qOmt);
+        } catch (\Throwable $errores) {
+            registrar_errores($qOmt, "guardarPadron_inspira.php", $errores);
+            $error = true;
+        }
 
         if ($resultomt) {
             if (mysqli_num_rows($resultomt) > 0) {
@@ -438,19 +448,22 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
         }
 
         if ($omt) {
-
             $cedulasBenficiarios = [];
 
             // RECUPERA TODOS LOS BENEFICIARIOS
-            $query = "SELECT * FROM padron_producto_socio WHERE cedula_titular_gf = '$cedulaAfiliado'";
-            $result = mysqli_query($mysqli, $query);
-            if (!$result) logger("[ERROR CONSULTA EN padron_producto_socio]: " . mysqli_error($mysqli) . " [CI]: $cedulaAfiliado query: $query");
+            try {
+                $query = "SELECT * FROM padron_producto_socio WHERE cedula_titular_gf = '$cedulaAfiliado'";
+                $result = mysqli_query($mysqli, $query);
+            } catch (\Throwable $errores) {
+                registrar_errores($query, "guardarPadron_inspira.php", $errores);
+                $error = true;
+            }
 
             if ($result) {
                 while ($row = mysqli_fetch_assoc($result)) {
                     $ciBeneficiario = $row['cedula'];
                     // SERVICIOS DEL BENEFICIARIO
-                    $servicios_beneficiario = array(
+                    $servicios_beneficiario = [
                         'cedula'                 => $row['cedula'],
                         'servicio'               => $row['servicio'],
                         'hora'                   => $row['hora'],
@@ -488,23 +501,20 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
                         'precioOriginal'         => $row['precioOriginal'],
                         'abitab'                 => $row['abitab'],
                         'cedula_titular_gf'      => $row['cedula_titular_gf'],
-                    );
+                    ];
 
                     $campos = array_keys($servicios_beneficiario);
-                    $query  = "INSERT INTO padron_producto_socio(" . implode(',', $campos) . ") VALUES('" . implode("','", $servicios_beneficiario) . "')";
-                    $result2 = mysqli_query($mysqli250, $query);
-
-                    if ($result2) {
-                        logger("[OK]: GUARDAR [TABLE] padron_producto_socio - BENEFICIARIO OMT $ciBeneficiario", false);
-                    } else {
-                        $error = mysqli_error($mysqli250);
-                        logger("[ERROR AL GUARDAR DATOS BENEFICIARIO OMT]: $error CI: $ciBeneficiario");
+                    try {
+                        $query  = "INSERT INTO padron_producto_socio(" . implode(',', $campos) . ") VALUES('" . implode("','", $servicios_beneficiario) . "')";
+                        $result2 = mysqli_query($mysqli250, $query);
+                    } catch (\Throwable $errores) {
+                        registrar_errores($query, "guardarPadron_inspira.php", $errores);
+                        $error = true;
                     }
 
                     // GUARDO LAS CEDULAS DE LOS BENEFICIARIOS
-                    if (!in_array($ciBeneficiario, $cedulasBenficiarios)) {
+                    if (!in_array($ciBeneficiario, $cedulasBenficiarios))
                         array_push($cedulasBenficiarios, $ciBeneficiario);
-                    }
                 }
             }
 
@@ -512,13 +522,17 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
             if (count($cedulasBenficiarios) > 0) {
                 foreach ($cedulasBenficiarios as $key => $ci) {
                     // DATOS DEL BENEFICIARIO
-                    $query  = "SELECT * FROM padron_datos_socio WHERE cedula = '$ci'";
-                    $result = mysqli_query($mysqli, $query);
-                    if (!$result) logger("[ERROR CONSULTA EN padron_datos_socio]: " . mysqli_error($mysqli) . " [CI]: $ci query: $query");
+                    try {
+                        $query  = "SELECT * FROM padron_datos_socio WHERE cedula = '$ci'";
+                        $result = mysqli_query($mysqli, $query);
+                    } catch (\Throwable $errores) {
+                        registrar_errores($query, "guardarPadron_inspira.php", $errores);
+                        $error = true;
+                    }
 
                     if (mysqli_num_rows($result) > 0) {
                         $row                = mysqli_fetch_assoc($result);
-                        $datos_beneficiario = array(
+                        $datos_beneficiario = [
                             'nombre'                => $row['nombre'],
                             'tel'                   => $row['tel'],
                             'cedula'                => $ci,
@@ -563,19 +577,27 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
                             'radioViejo'            => $row['radioViejo'],
                             'extra'                 => $row['extra'],
                             'nomodifica'            => $row['nomodifica'],
-                        );
+                        ];
 
                         $campos = array_keys($datos_beneficiario);
-                        $query  = "INSERT INTO  padron_datos_socio (" . implode(',', $campos) . ") VALUES('" . implode("','", $datos_beneficiario) . "')";
-                        $result4 = mysqli_query($mysqli250, $query);
-                        if (!$result4) logger("[ERROR INSERT EN padron_datos_socio]: " . mysqli_error($mysqli250) . " query: $query");
+                        try {
+                            $query  = "INSERT INTO  padron_datos_socio (" . implode(',', $campos) . ") VALUES('" . implode("','", $datos_beneficiario) . "')";
+                            $result4 = mysqli_query($mysqli250, $query);
+                        } catch (\Throwable $errores) {
+                            registrar_errores($query, "guardarPadron_inspira.php", $errores);
+                            $error = true;
+                        }
 
                         if ($result4) {
-                            logger("[OK]: GUARDAR [TABLE] padron_datos_socio - BENEFICIARIO OMT $ci", false);
                             //dir2
                             $idSocioPadronBen = mysqli_insert_id($mysqli250);
-                            $qDatosDir = "SELECT calle,puerta,manzana,solar,apartamento,esquina,referencia FROM direcciones_socios WHERE cedula_socio ='$ci'";
-                            $rDatosDir = mysqli_query($mysqli, $qDatosDir);
+                            try {
+                                $qDatosDir = "SELECT calle,puerta,manzana,solar,apartamento,esquina,referencia FROM direcciones_socios WHERE cedula_socio ='$ci'";
+                                $rDatosDir = mysqli_query($mysqli, $qDatosDir);
+                            } catch (\Throwable $errores) {
+                                registrar_errores($qDatosDir, "guardarPadron_inspira.php", $errores);
+                                $error = true;
+                            }
 
                             if ($rDatosDir && mysqli_num_rows($rDatosDir) > 0) {
                                 $row        = mysqli_fetch_assoc($rDatosDir);
@@ -587,37 +609,44 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
                                 $esquina    = mysqli_real_escape_string($mysqli250, $row['esquina']);
                                 $referencia = mysqli_real_escape_string($mysqli250, $row['referencia']);
 
-                                $qInsertDireccion = "INSERT INTO direcciones_socios (id_socio,calle,puerta,manzana,solar,apartamento,esquina,referencia,cedula_socio) VALUES ($idSocioPadronBen,'$calle','$puerta','$manzana','$solar','$apto','$esquina','$referencia','$ci')";
-                                $rDir = mysqli_query($mysqli250, $qInsertDireccion);
-
-                                if (!$rDir) {
-                                    $error = mysqli_error($mysqli250);
-                                    logger("[ERROR AL GUARDAR DATOS DE DIRECCION BENEFICIARIO]: $error [CI]: $ci query: $qInsertDireccion ");
+                                try {
+                                    $qInsertDireccion = "INSERT INTO direcciones_socios (id_socio,calle,puerta,manzana,solar,apartamento,esquina,referencia,cedula_socio) VALUES ($idSocioPadronBen,'$calle','$puerta','$manzana','$solar','$apto','$esquina','$referencia','$ci')";
+                                    $rDir = mysqli_query($mysqli250, $qInsertDireccion);
+                                } catch (\Throwable $errores) {
+                                    registrar_errores($qInsertDireccion, "guardarPadron_inspira.php", $errores);
+                                    $error = true;
                                 }
                             }
-                        } else {
-                            $error = mysqli_error($mysqli250);
-                            logger("[ERROR AL GUARDAR DATOS BENEFICIARIO OMT]: $error [CI]: $ci");
                         }
                     }
                 }
             }
 
-            $q1 = "SELECT cedula FROM padron_producto_socio WHERE cedula_titular_gf = '$cedulaAfiliado'";
-            $rq1 = mysqli_query($mysqli, $q1);
-            if (!$rq1) logger("[ERROR CONSULTA EN padron_producto_socio]: " . mysqli_error($mysqli) . " [CI]: $cedulaAfiliado query: $q1");
+            try {
+                $q1 = "SELECT cedula FROM padron_producto_socio WHERE cedula_titular_gf = '$cedulaAfiliado'";
+                $rq1 = mysqli_query($mysqli, $q1);
+            } catch (\Throwable $errores) {
+                registrar_errores($q1, "guardarPadron_inspira.php", $errores);
+                $error = true;
+            }
 
             if ($rq1) {
                 while ($row = mysqli_fetch_assoc($result)) {
                     $ci = $row["cedula"];
-
-                    $q1 = "UPDATE padron_datos_socio SET accion='5' WHERE cedula='$ci'";
-                    $rq1 = mysqli_query($mysqli, $q1);
-                    if (!$rq1) logger("[ERROR UPDATE EN padron_datos_socio]: " . mysqli_error($mysqli) . " [CI]: $ci query: $q1");
-
-                    $q2 = "UPDATE padron_producto_socio SET accion='5' WHERE cedula='$ci'";
-                    $rq2 = mysqli_query($mysqli, $q2);
-                    if (!$rq2) logger("[ERROR UPDATE EN padron_producto_socio]: " . mysqli_error($mysqli) . " [CI]: $ci query: $q2");
+                    try {
+                        $q1 = "UPDATE padron_datos_socio SET accion='5' WHERE cedula='$ci'";
+                        $rq1 = mysqli_query($mysqli, $q1);
+                    } catch (\Throwable $errores) {
+                        registrar_errores($q1, "guardarPadron_inspira.php", $errores);
+                        $error = true;
+                    }
+                    try {
+                        $q2 = "UPDATE padron_producto_socio SET accion='5' WHERE cedula='$ci'";
+                        $rq2 = mysqli_query($mysqli, $q2);
+                    } catch (\Throwable $errores) {
+                        registrar_errores($q2, "guardarPadron_inspira.php", $errores);
+                        $error = true;
+                    }
                 }
             }
         }
@@ -629,27 +658,41 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
             $fecha            = date('Y-m-d');
             $log_error        = "../../../logs/errors_reportes/error_$fecha.log";
             $log_file         = "../../../logs/logs_reportes/log_$fecha.log";
-            $sucur            = $datos_socio['sucursal'];
-            $qIdFilial        = "SELECT id FROM filiales WHERE nro_filial = $sucur";
             $idFilial         = '';
-            $idGrupo          = 0;
+            $idGrupo          = '';
             $aplicaPromoCr    = false; //conva
-
-            $rIdSuc = mysqli_query($mysqli, $qIdFilial);
-            if (!$rIdSuc) logger("[ERROR CONSULTA EN filiales]: " . mysqli_error($mysqli) . " [Nro. filial]: $sucur query: $qIdFilial");
-            if ($rIdSuc) $idFilial = (mysqli_num_rows($rIdSuc) > 0) ? mysqli_fetch_assoc($rIdSuc)['id'] : $idFilial;
+            $sucur            = $datos_socio['sucursal'];
 
 
-            /*
-            $qIdGrupo = "SELECT idgrupo FROM usuarios WHERE id = $idUser";
-            if ($rIdGrupo = mysqli_query($mysqli, $qIdGrupo)) {
-                $idGrupo = (mysqli_num_rows($rIdGrupo) > 0) ? mysqli_fetch_assoc($rIdGrupo)['idgrupo'] : $idGrupo;
+            try {
+                $qIdFilial = "SELECT id FROM filiales WHERE nro_filial = $sucur";
+                $rIdSuc = mysqli_query($mysqli, $qIdFilial);
+            } catch (\Throwable $errores) {
+                registrar_errores($qIdFilial, "guardarPadron_inspira.php", $errores);
+                $error = true;
             }
-            */
 
-            $qHistoricoReporte = "INSERT INTO historico_reportes VALUES(null, $idUser, $id_cliente, '$alta', '" . $servicios_socio[0]['fecha_registro'] . "','" . $datos_socio['total_importe'] . "','$totalIncremento','$idFilial','$idGrupo','$metodo_pago','" . $datos_socio['observaciones'] . "','" . $datos_socio['radio'] . "','$origen_venta')";
-            $rHist             = mysqli_query($mysqli, $qHistoricoReporte);
-            if (!$rHist) logger("[ERROR INSERT EN historico_reportes]: " . mysqli_error($mysqli) . " [ID]: $id_cliente query: $qHistoricoReporte");
+            $idFilial = ($rIdSuc && mysqli_num_rows($rIdSuc) > 0) ? mysqli_fetch_assoc($rIdSuc)['id'] : $idFilial;
+
+            try {
+                $qIdGrupo = "SELECT idgrupo FROM usuarios WHERE id = $idUser";
+                $rIdGrupo = mysqli_query($mysqli, $qIdGrupo);
+            } catch (\Throwable $errores) {
+                registrar_errores($qIdGrupo, "guardarPadron_inspira.php", $errores);
+                $error = true;
+            }
+
+            $idGrupo = ($rIdGrupo && mysqli_num_rows($rIdGrupo) > 0) ? mysqli_fetch_assoc($rIdGrupo)['idgrupo'] : $idGrupo;
+
+
+
+            try {
+                $qHistoricoReporte = "INSERT INTO historico_reportes VALUES(null, $idUser, $id_cliente, '$alta', '" . $servicios_socio[0]['fecha_registro'] . "','" . $datos_socio['total_importe'] . "','$totalIncremento','$idFilial','$idGrupo','$metodo_pago','" . $datos_socio['observaciones'] . "','" . $datos_socio['radio'] . "','$origen_venta')";
+                $rHist = mysqli_query($mysqli, $qHistoricoReporte);
+            } catch (\Throwable $errores) {
+                registrar_errores($qHistoricoReporte, "guardarPadron_inspira.php", $errores);
+                $error = true;
+            }
 
             $idHistoricoReporte = mysqli_insert_id($mysqli);
 
@@ -657,64 +700,69 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
 
                 if ($alta == '1') {
                     //conva comprobamos si tienen convalecencia de regalo
-                    $qPromoCr = "SELECT id FROM padron_producto_socio WHERE abm='ALTA' AND cedula = '$cedula' AND cod_promo='24'";
-                    $rPromoCr = mysqli_query($mysqli, $qPromoCr);
-                    if (!$rPromoCr) logger("[ERROR CONSULTA EN padron_producto_socio]: " . mysqli_error($mysqli) . " [CI]: $cedula query: $qPromoCr ");
+                    try {
+                        $qPromoCr = "SELECT id FROM padron_producto_socio WHERE abm='ALTA' AND cedula = '$cedula' AND cod_promo='24'";
+                        $rPromoCr = mysqli_query($mysqli, $qPromoCr);
+                    } catch (\Throwable $errores) {
+                        registrar_errores($qPromoCr, "guardarPadron_inspira.php", $errores);
+                        $error = true;
+                    }
 
                     if ($rPromoCr && mysqli_num_rows($rPromoCr) > 0) $aplicaPromoCr = true;
                 }
 
                 $retornoHistorico = true;
-                $log_content = "[LOG][$fecha]|datos guardados id_cliente $id_cliente, id historico: $idHistoricoReporte|" . mysqli_error($mysqli);
-                file_put_contents($log_file, $log_content . "\n", FILE_APPEND);
 
-                $qServicios = "SELECT 
-                                servicio, 
-                                sum(importe) AS total_importe, 
-                                sum(hora) AS horas 
-                               FROM 
-                                padron_producto_socio 
-                               WHERE 
-                                cedula = $cedula AND 
-                                abm <> '0'
-                               GROUP BY servicio";
-                $rServ      = mysqli_query($mysqli, $qServicios);
-                if (!$rServ) logger("[ERROR CONSULTA EN padron_producto_socio]: " . mysqli_error($mysqli) . " [CI]: $cedula query: $qServicios ");
+                try {
+                    $qServicios = "SELECT servicio, sum(importe) AS total_importe, sum(hora) AS horas FROM padron_producto_socio WHERE cedula = $cedula AND abm <> '0' GROUP BY servicio";
+                    $rServ = mysqli_query($mysqli, $qServicios);
+                } catch (\Throwable $errores) {
+                    registrar_errores($qServicios, "guardarPadron_inspira.php", $errores);
+                    $error = true;
+                }
 
                 if ($rServ) {
-
                     while ($row = mysqli_fetch_assoc($rServ)) {
                         $nroServ      = $row['servicio'];
                         $totalImporte = $row['total_importe'];
                         $horas        = $row['horas'];
 
-                        $qIdServ = "SELECT id_servicio FROM numeros_servicios WHERE numero_servicio = '$nroServ' GROUP BY id_servicio";
-                        $rIdServ = mysqli_query($mysqli1310, $qIdServ);
-                        if (!$rIdServ) logger("[ERROR CONSULTA EN numeros_servicios]: " . mysqli_error($mysqli) . " [Nro. Servicio]: $nroServ query: $qIdServ ");
+                        try {
+                            $qIdServ = "SELECT id_servicio FROM numeros_servicios WHERE numero_servicio = '$nroServ' GROUP BY id_servicio";
+                            $rIdServ = mysqli_query($mysqli1310, $qIdServ);
+                        } catch (\Throwable $errores) {
+                            registrar_errores($qIdServ, "guardarPadron_inspira.php", $errores);
+                            $error = true;
+                        }
 
                         $idServ  = mysqli_fetch_assoc($rIdServ)['id_servicio'];
                         $promoCr = ($aplicaPromoCr && $nroServ == '01') ? 1 : 0; //conva
 
-                        $qHistoricoServicios = "INSERT INTO historico_reportes_servicios VALUES(null, $idHistoricoReporte,$idServ, '$totalImporte','$horas',$promoCr)";
-                        if (mysqli_query($mysqli, $qHistoricoServicios)) {
+                        try {
+                            $qHistoricoServicios = "INSERT INTO historico_reportes_servicios VALUES(null, $idHistoricoReporte,$idServ, '$totalImporte','$horas',$promoCr)";
+                            $rHistoricoServicios = mysqli_query($mysqli, $qHistoricoServicios);
+                        } catch (\Throwable $errores) {
+                            registrar_errores($qHistoricoServicios, "guardarPadron_inspira.php", $errores);
+                            $error = true;
+                        }
+
+                        if ($rHistoricoServicios) {
                             $retornoServicios = true;
                             $idHistoricoServicio = mysqli_insert_id($mysqli);
-                            $log_content         = "[LOG][$fecha]|servicio $nroServ guardado id historico: $idHistoricoReporte|" . mysqli_error($mysqli);
-                            file_put_contents($log_file, $log_content . "\n", FILE_APPEND);
-                        } else {
-                            $log_content = "[ERROR][$fecha]|error servicios: | $qHistoricoServicios|" . mysqli_error($mysqli);
-                            file_put_contents($log_error, $log_content . "\n", FILE_APPEND);
                         }
                     }
 
                     if ($retornoHistorico && $retornoServicios) {
                         //dir2
+                        try {
+                            $qDatosDir = "SELECT calle, puerta, manzana, solar, apartamento, esquina, referencia FROM direcciones_socios WHERE cedula_socio ='$cedula'";
+                            $rDatosDir = mysqli_query($mysqli, $qDatosDir);
+                        } catch (\Throwable $errores) {
+                            registrar_errores($qDatosDir, "guardarPadron_inspira.php", $errores);
+                            $error = true;
+                        }
 
-                        $qDatosDir = "SELECT calle, puerta, manzana, solar, apartamento, esquina, referencia FROM direcciones_socios WHERE cedula_socio ='$cedula'";
-                        $rDatosDir = mysqli_query($mysqli, $qDatosDir);
-                        if (!$rDatosDir) logger("[ERROR CONSULTA EN direcciones_socios]: " . mysqli_error($mysqli) . " [CI]: $cedula query: $qDatosDir ");
-
-                        if ($rDatosDir && mysqli_num_rows($rDatosDir) > 0) {
+                        if (mysqli_num_rows($rDatosDir) > 0) {
                             $row     = mysqli_fetch_assoc($rDatosDir);
                             $calle   = mysqli_real_escape_string($mysqli250, $row['calle']);
                             $puerta  = $row['puerta'];
@@ -724,37 +772,55 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
                             $esquina = mysqli_real_escape_string($mysqli250, $row['esquina']);
                             $referencia = mysqli_real_escape_string($mysqli250, $row['referencia']);
 
-                            $qExistePadron = "SELECT * FROM direcciones_socios WHERE cedula_socio = '$cedula'";
-                            $rExistePadron = mysqli_query($mysqli250, $qExistePadron);
-
-                            if ($qExistePadron && mysqli_num_rows($rExistePadron) > 0) {
-                                $qInsertDireccion = "UPDATE direcciones_socios SET calle = '$calle', puerta = '$puerta', apartamento = '$apto', manzana = '$manzana', solar = '$solar', esquina = '$esquina', referencia = '$referencia' WHERE cedula_socio = '$cedula'";
-                                $rDir = mysqli_query($mysqli250, $qInsertDireccion);
-                            } else {
-                                $qIdPadron = "SELECT id FROM padron_datos_socio WHERE cedula = '$cedula'";
-                                $rIdPadron = mysqli_query($mysqli250, $qIdPadron);
-                                $idSocioPadron = mysqli_fetch_assoc($rIdPadron)['id'];
-                                $qInsertDireccion = "INSERT INTO direcciones_socios (id_socio, calle, puerta, manzana, solar, apartamento, esquina, referencia, cedula_socio) VALUES ($idSocioPadron,'$calle','$puerta','$manzana','$solar','$apto','$esquina','$referencia','$cedula')";
-                                $rDir = mysqli_query($mysqli250, $qInsertDireccion);
+                            try {
+                                $qExistePadron = "SELECT * FROM direcciones_socios WHERE cedula_socio = '$cedula'";
+                                $rExistePadron = mysqli_query($mysqli250, $qExistePadron);
+                            } catch (\Throwable $errores) {
+                                registrar_errores($qExistePadron, "guardarPadron_inspira.php", $errores);
+                                $error = true;
                             }
 
-                            if (!$rDir) {
-                                $error = mysqli_error($mysqli250);
-                                logger("[ERROR AL GUARDAR DATOS DE DIRECCION]: $error [CI]: $cedula query: $qInsertDireccion ");
+
+                            if ($qExistePadron && mysqli_num_rows($rExistePadron) > 0) {
+                                try {
+                                    $qInsertDireccion = "UPDATE direcciones_socios SET calle = '$calle', puerta = '$puerta', apartamento = '$apto', manzana = '$manzana', solar = '$solar', esquina = '$esquina', referencia = '$referencia' WHERE cedula_socio = '$cedula'";
+                                    $rDir = mysqli_query($mysqli250, $qInsertDireccion);
+                                } catch (\Throwable $errores) {
+                                    registrar_errores($qInsertDireccion, "guardarPadron_inspira.php", $errores);
+                                    $error = true;
+                                }
                             } else {
-                                $log_content         = "[LOG][$fecha]|direcion guardada/actualizada en padron: $cedula| query: $qInsertDireccion";
-                                file_put_contents($log_file, $log_content . "\n", FILE_APPEND);
+                                try {
+                                    $qIdPadron = "SELECT id FROM padron_datos_socio WHERE cedula = '$cedula'";
+                                    $rIdPadron = mysqli_query($mysqli250, $qIdPadron);
+                                } catch (\Throwable $errores) {
+                                    registrar_errores($qIdPadron, "guardarPadron_inspira.php", $errores);
+                                    $error = true;
+                                }
+
+                                $idSocioPadron = mysqli_fetch_assoc($rIdPadron)['id'];
+
+                                try {
+                                    $qInsertDireccion = "INSERT INTO direcciones_socios (id_socio, calle, puerta, manzana, solar, apartamento, esquina, referencia, cedula_socio) VALUES ($idSocioPadron,'$calle','$puerta','$manzana','$solar','$apto','$esquina','$referencia','$cedula')";
+                                    $rDir = mysqli_query($mysqli250, $qInsertDireccion);
+                                } catch (\Throwable $errores) {
+                                    registrar_errores($qInsertDireccion, "guardarPadron_inspira.php", $errores);
+                                    $error = true;
+                                }
                             }
                         } else {
                             $rDir = true;
                         }
 
-                        $qDatosBenServ = "SELECT * FROM beneficiarios_servicios WHERE cedula_titular ='$cedula'"; //newform
-                        $rDatosBenServ = mysqli_query($mysqli, $qDatosBenServ);
-                        if (!$rDatosBenServ) logger("[ERROR CONSULTA EN beneficiarios_servicios]: " . mysqli_error($mysqli) . " [CI]: $cedula query: $qDatosBenServ ");
+                        try {
+                            $qDatosBenServ = "SELECT * FROM beneficiarios_servicios WHERE cedula_titular ='$cedula'"; //newform
+                            $rDatosBenServ = mysqli_query($mysqli, $qDatosBenServ);
+                        } catch (\Throwable $errores) {
+                            registrar_errores($qDatosBenServ, "guardarPadron_inspira.php", $errores);
+                            $error = true;
+                        }
 
                         if ($rDatosBenServ && mysqli_num_rows($rDatosBenServ) > 0) {
-
                             while ($row = mysqli_fetch_assoc($rDatosBenServ)) {
                                 $nomBen     = $row['nombre'];
                                 $cedBen     = $row['cedula'];
@@ -762,37 +828,45 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
                                 $telBen     = $row['telefono'];
                                 $numServben = $row['num_servicio'];
 
-                                $qInsertBenServ = "INSERT INTO beneficiarios_servicios VALUES (null, '$nomBen','$cedBen','$fnBen','$telBen','$cedula','$numServben')";
-                                $rInsertBenServ = mysqli_query($mysqli250, $qInsertBenServ);
-
-                                if (!$rInsertBenServ) {
-                                    $error = mysqli_error($mysqli250);
-                                    logger("[ERROR AL GUARDAR DATOS DE BENEFCIARIOS DE SERVICIO]: $error [CI]: $cedula query: $qInsertDireccion ");
-                                } else {
-                                    $log_content         = "[LOG][$fecha]|datos de beneficiarios guardados en padron: $cedula| query: $qInsertBenServ";
-                                    file_put_contents($log_file, $log_content . "\n", FILE_APPEND);
+                                try {
+                                    $qInsertBenServ = "INSERT INTO beneficiarios_servicios VALUES (null, '$nomBen','$cedBen','$fnBen','$telBen','$cedula','$numServben')";
+                                    $rInsertBenServ = mysqli_query($mysqli250, $qInsertBenServ);
+                                } catch (\Throwable $errores) {
+                                    registrar_errores($qInsertBenServ, "guardarPadron_inspira.php", $errores);
+                                    $error = true;
                                 }
                             }
 
-                            $qUpdateBS = "UPDATE beneficiarios_servicios SET concretado = 1 WHERE cedula_titular = '$cedula'";
-                            $rUpdateBS = mysqli_query($mysqli, $qUpdateBS); //newform
-                            if (!$rUpdateBS) logger("[ERROR UPDATE EN beneficiarios_servicios]: " . mysqli_error($mysqli) . " [CI]: $cedula query: $qUpdateBS ");
+                            try {
+                                $qUpdateBS = "UPDATE beneficiarios_servicios SET concretado = 1 WHERE cedula_titular = '$cedula'";
+                                $rUpdateBS = mysqli_query($mysqli, $qUpdateBS); //newform
+                            } catch (\Throwable $errores) {
+                                registrar_errores($qUpdateBS, "guardarPadron_inspira.php", $errores);
+                                $error = true;
+                            }
                         }
                     }
 
-                    $qBeneficiarios = "SELECT cedula FROM padron_producto_socio WHERE cedula_titular_gf = '$cedula' GROUP BY cedula";
-                    $rBeneficiarios = mysqli_query($mysqli, $qBeneficiarios);
-                    if (!$rBeneficiarios) logger("[ERROR CONSULTA EN padron_producto_socio]: " . mysqli_error($mysqli) . " [CI]: $cedula query: $qBeneficiarios");
+                    try {
+                        $qBeneficiarios = "SELECT cedula FROM padron_producto_socio WHERE cedula_titular_gf = '$cedula' GROUP BY cedula";
+                        $rBeneficiarios = mysqli_query($mysqli, $qBeneficiarios);
+                    } catch (\Throwable $errores) {
+                        registrar_errores($qBeneficiarios, "guardarPadron_inspira.php", $errores);
+                        $error = true;
+                    }
 
                     if (mysqli_num_rows($rBeneficiarios) > 0 && $alta = '1') {
                         while ($rowBen = mysqli_fetch_assoc($rBeneficiarios)) {
                             $cedulaBen = $rowBen['cedula'];
-                            $qDatosBen = "SELECT id, alta, total_importe, sucursal, observaciones, radio FROM padron_datos_socio WHERE cedula = $cedulaBen";
-                            $rDatosBen = mysqli_query($mysqli, $qDatosBen);
-                            if (!$rDatosBen) logger("[ERROR CONSULTA EN padron_datos_socio]: " . mysqli_error($mysqli) . " [CI]: $cedulaBen query: $qDatosBen");
+                            try {
+                                $qDatosBen = "SELECT id, alta, total_importe, sucursal, observaciones, radio FROM padron_datos_socio WHERE cedula = $cedulaBen";
+                                $rDatosBen = mysqli_query($mysqli, $qDatosBen);
+                            } catch (\Throwable $errores) {
+                                registrar_errores($qDatosBen, "guardarPadron_inspira.php", $errores);
+                                $error = true;
+                            }
 
                             if (mysqli_num_rows($rDatosBen) > 0) {
-
                                 while ($datos = mysqli_fetch_assoc($rDatosBen)) {
                                     $idBen         = $datos['id'];
                                     $alta          = $datos['alta'];
@@ -801,45 +875,58 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
                                     $observaciones = $datos['observaciones'];
                                 }
 
-                                $qIdSucursal = "SELECT id FROM filiales WHERE nro_filial =$sucursal";
-                                $rIdSucursal = mysqli_query($mysqli, $qIdSucursal);
-                                $idSucursal  = mysqli_fetch_assoc($rIdSucursal)['id'];
+                                try {
+                                    $qIdSucursal = "SELECT id FROM filiales WHERE nro_filial =$sucursal";
+                                    $rIdSucursal = mysqli_query($mysqli, $qIdSucursal);
+                                } catch (\Throwable $errores) {
+                                    registrar_errores($qIdSucursal, "guardarPadron_inspira.php", $errores);
+                                    $error = true;
+                                }
 
-                                $qHistoricoReporteBen = "INSERT INTO historico_reportes VALUES(null, $idUser, $idBen, '$alta', '" . $servicios_socio[0]['fecha_registro'] . "','$total_importe','$total_importe','$idSucursal','$idGrupo','$metodo_pago','$observaciones','" . $datos_socio['radio'] . "','$origen_venta')";
-                                $rInsert = mysqli_query($mysqli, $qHistoricoReporteBen);
-                                if (!$rInsert) logger("[ERROR INSERT EN historico_reportes]: " . mysqli_error($mysqli) . " [ID]: $idBen query: $qHistoricoReporteBen");
+                                $idSucursal = mysqli_fetch_assoc($rIdSucursal)['id'];
+
+                                try {
+                                    $qHistoricoReporteBen = "INSERT INTO historico_reportes VALUES(null, $idUser, $idBen, '$alta', '" . $servicios_socio[0]['fecha_registro'] . "','$total_importe','$total_importe','$idSucursal','$idGrupo','$metodo_pago','$observaciones','" . $datos_socio['radio'] . "','$origen_venta')";
+                                    $rInsert = mysqli_query($mysqli, $qHistoricoReporteBen);
+                                } catch (\Throwable $errores) {
+                                    registrar_errores($qHistoricoReporteBen, "guardarPadron_inspira.php", $errores);
+                                    $error = true;
+                                }
+
 
                                 if ($rInsert) {
-
                                     $idHistorico = mysqli_insert_id($mysqli);
-
-                                    $qServiciosBen = "SELECT 
-                                                       servicio, 
-                                                       sum(hora) AS horas, 
-                                                       sum(importe) AS importe 
-                                                      FROM 
-                                                       padron_producto_socio 
-                                                      WHERE 
-                                                       cedula = '$cedulaBen' 
-                                                      GROUP BY servicio";
-                                    $rServiciosBen = mysqli_query($mysqli, $qServiciosBen);
-                                    if (!$rServiciosBen) logger("[ERROR CONSULTA EN padron_producto_socio]: " . mysqli_error($mysqli) . " [CI]: $cedulaBen query: $qServiciosBen");
+                                    try {
+                                        $qServiciosBen = "SELECT servicio, sum(hora) AS horas, sum(importe) AS importe FROM padron_producto_socio WHERE cedula = '$cedulaBen' GROUP BY servicio";
+                                        $rServiciosBen = mysqli_query($mysqli, $qServiciosBen);
+                                    } catch (\Throwable $errores) {
+                                        registrar_errores($qServiciosBen, "guardarPadron_inspira.php", $errores);
+                                        $error = true;
+                                    }
 
                                     if ($rServiciosBen) {
-
                                         while ($row = mysqli_fetch_assoc($rServiciosBen)) {
                                             $nroServicio = $row['servicio'];
                                             $importe     = $row['importe'];
                                             $horas       = $row['horas'];
 
-                                            $qIdServicio = "SELECT id_servicio FROM numeros_servicios WHERE numero_servicio = '$nroServicio' GROUP BY id_servicio";
-                                            $rIdServicio = mysqli_query($mysqli1310, $qIdServicio);
-                                            if (!$rIdServicio) logger("[ERROR CONSULTA EN numeros_servicios]: " . mysqli_error($mysqli1310) . " [Nro. Servicio]: $nroServicio query: $qIdServicio");
+                                            try {
+                                                $qIdServicio = "SELECT id_servicio FROM numeros_servicios WHERE numero_servicio = '$nroServicio' GROUP BY id_servicio";
+                                                $rIdServicio = mysqli_query($mysqli1310, $qIdServicio);
+                                            } catch (\Throwable $errores) {
+                                                registrar_errores($qIdServicio, "guardarPadron_inspira.php", $errores);
+                                                $error = true;
+                                            }
 
-                                            $idServicio       = mysqli_fetch_assoc($rIdServicio)['id_servicio'];
-                                            $qGuardarServicio = "INSERT INTO historico_reportes_servicios VALUES (null, $idHistorico, $idServicio, $importe, $horas)";
-                                            $rGuardarServicio = mysqli_query($mysqli, $qGuardarServicio);
-                                            if (!$rGuardarServicio) logger("[ERROR INSERT EN historico_reportes_servicios]: " . mysqli_error($mysqli) . " [ID]: $idHistorico query: $idServicio");
+                                            $idServicio = mysqli_fetch_assoc($rIdServicio)['id_servicio'];
+
+                                            try {
+                                                $qGuardarServicio = "INSERT INTO historico_reportes_servicios VALUES (null, $idHistorico, $idServicio, $importe, $horas)";
+                                                $rGuardarServicio = mysqli_query($mysqli, $qGuardarServicio);
+                                            } catch (\Throwable $errores) {
+                                                registrar_errores($qGuardarServicio, "guardarPadron_inspira.php", $errores);
+                                                $error = true;
+                                            }
                                         }
                                     }
                                 }
@@ -847,9 +934,6 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
                         }
                     }
                 }
-            } else {
-                $log_content = "[ERROR][$fecha]|error datos| $qHistoricoReporte|" . mysqli_error($mysqli);
-                file_put_contents($log_error, $log_content . "\n", FILE_APPEND);
             }
         }
 
@@ -857,43 +941,74 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
 
         if (!$retorno_servicios || !$retorno_datos || !$rHistorico) {
             if ($alta == '1') {
-                $q1 = "DELETE FROM padron_datos_socio WHERE cedula ='$cedula'";
-                $rq1 = mysqli_query($mysqli250, $q1);
-                if (!$rq1) logger("[ERROR DELETE EN padron_datos_socio]: " . mysqli_error($mysqli250) . " [CI]: $cedula query: $q1");
+                try {
+                    $q1 = "DELETE FROM padron_datos_socio WHERE cedula ='$cedula'";
+                    $rq1 = mysqli_query($mysqli250, $q1);
+                } catch (\Throwable $errores) {
+                    registrar_errores($q1, "guardarPadron_inspira.php", $errores);
+                    $error = true;
+                }
 
-                $q2 = "DELETE FROM padron_producto_socio WHERE cedula ='$cedula'";
-                $rq2 = mysqli_query($mysqli250, $q2);
-                if (!$rq2) logger("[ERROR DELETE EN padron_datos_socio]: " . mysqli_error($mysqli250) . " [CI]: $cedula query: $q2");
+                try {
+                    $q2 = "DELETE FROM padron_producto_socio WHERE cedula ='$cedula'";
+                    $rq2 = mysqli_query($mysqli250, $q2);
+                } catch (\Throwable $errores) {
+                    registrar_errores($q2, "guardarPadron_inspira.php", $errores);
+                    $error = true;
+                }
             }
 
-            $q1 = "UPDATE padron_datos_socio SET accion = '$accion' WHERE cedula = '$cedula'";
-            $rq1 = mysqli_query($mysqli, $q1);
-            if (!$rq1) logger("[ERROR UPDATE EN padron_datos_socio]: " . mysqli_error($mysqli) . " [CI]: $cedula query: $q1");
+            try {
+                $q1 = "UPDATE padron_datos_socio SET accion = '$accion' WHERE cedula = '$cedula'";
+                $rq1 = mysqli_query($mysqli, $q1);
+            } catch (\Throwable $errores) {
+                registrar_errores($q1, "guardarPadron_inspira.php", $errores);
+                $error = true;
+            }
 
-            $q2 = "UPDATE padron_producto_socio SET accion = '1' WHERE cedula = '$cedula' AND fecha_registro = '" . $servicios_socio[0]['fecha_registro'] . "'";
-            $rq2 = mysqli_query($mysqli, $q2);
-            if (!$rq2) logger("[ERROR UPDATE EN padron_producto_socio]: " . mysqli_error($mysqli) . " [CI]: $cedula query: $q2");
+            try {
+                $q2 = "UPDATE padron_producto_socio SET accion = '1' WHERE cedula = '$cedula' AND fecha_registro = '" . $servicios_socio[0]['fecha_registro'] . "'";
+                $rq2 = mysqli_query($mysqli, $q2);
+            } catch (\Throwable $errores) {
+                registrar_errores($q2, "guardarPadron_inspira.php", $errores);
+                $error = true;
+            }
 
-            $q3 = "UPDATE padron_producto_socio SET accion = '3' WHERE cedula = '$cedula' AND fecha_registro <> '" . $servicios_socio[0]['fecha_registro'] . "'";
-            $rq3 = mysqli_query($mysqli, $q3);
-            if (!$rq3) logger("[ERROR UPDATE EN padron_producto_socio]: " . mysqli_error($mysqli) . " [CI]: $cedula query: $q3");
+            try {
+                $q3 = "UPDATE padron_producto_socio SET accion = '3' WHERE cedula = '$cedula' AND fecha_registro <> '" . $servicios_socio[0]['fecha_registro'] . "'";
+                $rq3 = mysqli_query($mysqli, $q3);
+            } catch (\Throwable $errores) {
+                registrar_errores($q3, "guardarPadron_inspira.php", $errores);
+                $error = true;
+            }
 
+            try {
+                $qBen = "SELECT id,cedula from padron_producto_socio WHERE cedula_titular_gf = '$cedula'";
+                $resultomt = mysqli_query($mysqli250, $qBen);
+            } catch (\Throwable $errores) {
+                registrar_errores($qBen, "guardarPadron_inspira.php", $errores);
+                $error = true;
+            }
 
-            $qBen = "SELECT id,cedula from padron_producto_socio WHERE cedula_titular_gf = '$cedula'";
-            $resultomt = mysqli_query($mysqli250, $qBen);
-            if (!$resultomt) logger("[ERROR CONSULTA EN padron_producto_socio]: " . mysqli_error($mysqli250) . " [CI]: $cedula query: $qBen");
             if ($resultomt) {
                 if (mysqli_num_rows($resultomt) > 0) {
                     while ($row = mysqli_fetch_assoc($resultomt)) {
                         $cedulaBen = $row['cedula'];
+                        try {
+                            $q1 = "DELETE FROM padron_datos_socio WHERE cedula = '$cedulaBen'";
+                            $rq1 = mysqli_query($mysqli250, $q1);
+                        } catch (\Throwable $errores) {
+                            registrar_errores($q1, "guardarPadron_inspira.php", $errores);
+                            $error = true;
+                        }
 
-                        $q1 = "DELETE FROM padron_datos_socio WHERE cedula = '$cedulaBen'";
-                        $rq1 = mysqli_query($mysqli250, $q1);
-                        if (!$rq1) logger("[ERROR DELETE EN padron_datos_socio]: " . mysqli_error($mysqli250) . " [CI]: $cedulaBen query: $q1");
-
-                        $q2 = "DELETE FROM padron_producto_socio WHERE cedula = '$cedulaBen'";
-                        $rq2 = mysqli_query($mysqli250, $q2);
-                        if (!$rq2) logger("[ERROR DELETE EN padron_producto_socio]: " . mysqli_error($mysqli250) . " [CI]: $cedulaBen query: $q2");
+                        try {
+                            $q2 = "DELETE FROM padron_producto_socio WHERE cedula = '$cedulaBen'";
+                            $rq2 = mysqli_query($mysqli250, $q2);
+                        } catch (\Throwable $errores) {
+                            registrar_errores($q2, "guardarPadron_inspira.php", $errores);
+                            $error = true;
+                        }
                     }
                 }
             }
@@ -932,23 +1047,33 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
             }
 
             //$qLink = "SELECT empresa, link FROM terminos_y_condiciones.empresa WHERE id = $empresa";
-            $qLink = "SELECT empresa, link FROM empresa WHERE id = $empresa";
-            $rLink = mysqli_query($mysqli250_TOCS, $qLink);
-            if (!$rLink) logger("[ERROR CONSULTA EN empresa]: " . mysqli_error($mysqli250_TOCS) . " [ID]: $empresa query: $qLink");
+            try {
+                $qLink = "SELECT empresa, link FROM empresa WHERE id = $empresa";
+                $rLink = mysqli_query($mysqli250_TOCS, $qLink);
+            } catch (\Throwable $errores) {
+                registrar_errores($qLink, "guardarPadron_inspira.php", $errores);
+                $error = true;
+            }
+
 
             if ($rLink) {
                 while ($row = mysqli_fetch_assoc($rLink)) {
                     $empresaNombre = $row['empresa'];
-                    $link          = $row['link'] . '?' . mb_strtolower(substr($row['empresa'], 0, 1));
-                    $parametros    = '&';
+                    $link = $row['link'] . '?' . mb_strtolower(substr($empresaNombre, 0, 1));
+                    $parametros = '&';
                 }
 
                 for ($i = 0; $i < count($servicios_socio); $i++) {
                     if (substr($parametros, -1) !== '&') {
                         $parametros .= '&';
-                        $qIdentificador = "SELECT identificador FROM v_nexo WHERE id_empresa = '$empresa' AND id_servicio = '" . $servicios_socio['servicio'] . "'";
-                        $rIdentificador = mysqli_query($mysqli250_TOCS, $qIdentificador);
-                        if (!$rIdentificador) logger("[ERROR CONSULTA EN v_nexo]: " . mysqli_error($mysqli250_TOCS) . " [ID Empresa]: $empresa query: $qIdentificador");
+
+                        try {
+                            $qIdentificador = "SELECT identificador FROM v_nexo WHERE id_empresa = '$empresa' AND id_servicio = '" . $servicios_socio['servicio'] . "'";
+                            $rIdentificador = mysqli_query($mysqli250_TOCS, $qIdentificador);
+                        } catch (\Throwable $errores) {
+                            registrar_errores($qIdentificador, "guardarPadron_inspira.php", $errores);
+                            $error = true;
+                        }
 
                         if ($rIdentificador) {
                             while ($row = mysqli_fetch_assoc($rIdentificador)) {
@@ -959,17 +1084,17 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
                 }
 
                 if ($empresa != 3 && $empresa != 2) {
-                    $mensaje  = "Bienvenido a $empresaNombre, puede ver los terminos y condiciones de su contrato en $link" . $parametros;
+                    $mensaje = "Bienvenido a $empresaNombre, puede ver los terminos y condiciones de su contrato en $link" . $parametros;
                     $servicio = "http://192.168.104.6/apiws/1/apiws.php?wsdl";
-                    $info     = array(
+                    $info = [
                         'authorizedKey' => '9d752cb08ef466fc480fba981cfa44a1',
                         'msgId'         => '0',
                         'msgData'       => $mensaje,
-                    );
+                    ];
 
                     foreach ($celulares as $celular) {
                         $info['msgRecip'] = $celular;
-                        $client           = new SoapClient($servicio, $info);
+                        $client = new SoapClient($servicio, $info);
                         $client->sendSms($info['authorizedKey'], $info['msgId'], $info['msgData'], $info['msgRecip']);
                         $retorno_sms = true;
                     }
@@ -977,11 +1102,10 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
             }
         }
 
-        $result = (($retorno_servicios && $retorno_datos && $rHistorico) && $retorno_sms);
+        $result = ($retorno_servicios && $retorno_datos && $rHistorico) && $retorno_sms;
     }
 
-    if (!$error)
-        copiarPatologiaPiscinaPadron($datos_socio['cedula']);
+    if (!$error) copiarPatologiaPiscinaPadron($datos_socio['cedula']);
 
     return $result;
 }
@@ -990,13 +1114,25 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
 
 
 
+
+function buscarCelular($numeros)
+{
+    preg_match_all('/(09)[1-9]{1}\d{6}/x', $numeros, $respuesta);
+    $respuesta = (count($respuesta[0]) !== 0) ? $respuesta[0] : false;
+    return $respuesta;
+}
+
+
 function obtenerGrupoUsuario($idVendedor)
 { //ucem
-    global $mysqli;
+    require "../../../_conexion.php";
 
-    $qIdGrupo =  "SELECT idgrupo FROM usuarios WHERE id = $idVendedor";
-    $select = $mysqli->query($qIdGrupo);
-    if (!$select) logger("[ERROR CONSULTA EN usuarios]: " . mysqli_error($mysqli) . " [ID]: $idVendedor query: $qIdGrupo");
+    try {
+        $qIdGrupo =  "SELECT idgrupo FROM usuarios WHERE id = $idVendedor";
+        $select = $mysqli->query($qIdGrupo);
+    } catch (\Throwable $errores) {
+        registrar_errores($qIdGrupo, "guardarPadron_inspira.php", $errores);
+    }
 
     return ($select->num_rows > 0) ? $select->fetch_assoc()['idgrupo'] : false;
 }
@@ -1010,35 +1146,55 @@ function obtenerGrupoUsuario($idVendedor)
  */
 function copiarPatologiaPiscinaPadron($_documentoSocio)
 {
-    require __DIR__ . '/../../_conexion.php';
-    require __DIR__ . '/../../_conexion250.php';
+    require "../../../_conexion.php";
+    require "../../../_conexion250.php";
 
-    $documentoSocio = $mysqli->real_escape_string($_documentoSocio);
-    $qSelect = <<<SQL
-  SELECT
-    *
-  FROM
-    `patologias_socio`
-  WHERE
-    `documento_socio` = "$documentoSocio"
-SQL;
-    $select = $mysqli->query($qSelect);
-    if (!$select) logger("[ERROR CONSULTA EN patologias_socio]: " . mysqli_error($mysqli) . " [ID]: $documentoSocio query: $qSelect");
-    $patologiasSocio = $select->fetch_all(MYSQLI_ASSOC);
+    $documentoSocio = mysqli_real_escape_string($mysqli, $_documentoSocio);
 
-
-    foreach ($patologiasSocio as $patologia) {
-        $documentoSocio = $mysqli250->real_escape_string($patologia['documento_socio']);
-        $idPatologia = $mysqli250->real_escape_string($patologia['id_patologia']);
-        $observacion = $mysqli250->real_escape_string($patologia['observacion']);
-        $qInsert = <<<SQL
-    INSERT INTO
-      `patologias_socio`
-      (`documento_socio`, `id_patologia`, `observacion`, `fecha`)
-    VALUES
-      ("{$documentoSocio}", "{$idPatologia}", "{$observacion}", NOW())
-SQL;
-        $r = $mysqli250->query($qInsert);
-        if (!$r) logger("[ERROR INSERT EN patologias_socio]: " . mysqli_error($mysqli250) . " [ID]: $documentoSocio query: $qInsert");
+    try {
+        $qSelect = "SELECT * FROM `patologias_socio` WHERE `documento_socio` = '$documentoSocio'";
+        $select = mysqli_query($mysqli, $qSelect);
+    } catch (\Throwable $errores) {
+        registrar_errores($qSelect, "guardarPadron_inspira.php", $errores);
     }
+
+    while ($row = mysqli_fetch_assoc($select)) {
+        $documentoSocio = mysqli_real_escape_string($mysqli250, $row['documento_socio']);
+        $idPatologia = mysqli_real_escape_string($mysqli250, $row['id_patologia']);
+        $observacion = mysqli_real_escape_string($mysqli250, $row['observacion']);
+
+        try {
+            $qInsert = "INSERT INTO patologias_socio SET 
+                        documento_socio = '$documentoSocio', 
+                        id_patologia = '$idPatologia', 
+                        observacion = '$observacion', 
+                        fecha = NOW()";
+            $r = mysqli_query($mysqli250, $qInsert);
+        } catch (\Throwable $errores) {
+            registrar_errores($qInsert, "guardarPadron_inspira.php", $errores);
+        }
+    }
+}
+
+
+function registrar_errores($consulta, $nombre_archivo, $error)
+{
+    require "../../../_conexion.php";
+
+    $consulta = str_replace("'", '"', $consulta);
+    $error = str_replace("'", '"', $error);
+
+    try {
+        $sql = "INSERT INTO log_errores (consulta, nombre_archivo, error, fecha_registro) VALUES ('$consulta', '$nombre_archivo', '$error', NOW())";
+        $consulta = mysqli_query($mysqli, $sql);
+    } catch (\Throwable $errores) {
+        Logger_inspira(false, "", "", "", "", $errores, $sql, "", "");
+    }
+
+    if ($consulta)
+        Logger_inspira(true, "", "", "", "", false, $sql, "", "");
+
+
+    mysqli_close($mysqli);
+    return $consulta;
 }

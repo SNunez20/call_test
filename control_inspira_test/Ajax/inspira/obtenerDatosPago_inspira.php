@@ -29,42 +29,11 @@ if (isset($_POST["typeAdmin"])) {
     '10911',
     '10912'
   ];
-  $arrPromoCompetencia = ['35', '2035', '3335'];
+  $arrPromoCompetencia = ['22', '73'];
 
-  $query = "SELECT
-             pd.nombre, 
-             pd.cedula, 
-             pd.sucursal, 
-             pd.radio, 
-             pd.tipo_tarjeta, 
-             pd.numero_tarjeta, 
-             pd.email_titular,
-             pd.telefono_titular, 
-             pd.nombre_titular, 
-             pd.cedula_titular, 
-             pd.anio_e, 
-             pd.mes_e, 
-             pd.cuotas_mercadopago,
-             pd.total_importe, 
-             pd.tarjeta_vida, 
-             pd.metodo_pago, 
-             pd.cvv, 
-             m.metodo, 
-             pd.alta, 
-             pd.estado, 
-             pd.id_usuario,
-             u.idgrupo, 
-             pd.fechafil, 
-             pd.localidad
-            FROM 
-             padron_datos_socio pd
-             INNER JOIN metodos_pago m ON m.id = pd.metodo_pago
-             LEFT JOIN usuarios u ON pd.id_usuario = u.id
-            WHERE 
-             pd.id = $id";
 
-  if ($result = mysqli_query($mysqli, $query)) {
-
+  $result = obtener_datos_socio($id);
+  if ($result) {
     while ($row = mysqli_fetch_assoc($result)) {
       $nombre             = $row['nombre'];
       $cedula             = $row['cedula'];
@@ -90,39 +59,13 @@ if (isset($_POST["typeAdmin"])) {
       $fechafil           = date('Y-m-d H:i', strtotime($row["fechafil"]));
       $localidad          = $row["localidad"];
       $origenVenta        = obtenerOrigenVenta($cedula);
-      $cobro_obligatorio  = in_array($row['radio'], $radios_cobro_adelantado) ? true : false;
+      $cobro_obligatorio  = in_array($row['radio'], $radios_cobro_adelantado);
 
-      //si posee algun afiliado con servicio OMT Se le suma el importe de este al total
-      $qOmt = "SELECT cedula, importe FROM padron_producto_socio WHERE servicio='70' AND cedula_titular_gf = '$cedula'";
-      if ($resultomt = mysqli_query($mysqli, $qOmt)) {
-        if (mysqli_num_rows($resultomt) > 0) {
-          $row = mysqli_fetch_assoc($resultomt);
-          $importeomt = $row['importe'];
-          $total_importe += $importeomt;
-        }
-      }
-
-      $fechaAfiliacion = new DateTime($fechafil);
-      $fechaVigenciaCarmelo = new DateTime('2021-12-13');
-      $fechaVigenciaPando = new DateTime('2022-03-23');
-      $fechaVigenciaSantaLucia = new DateTime('2022-04-11');
 
       $corresponde = false;
 
-      $qPromoVuelveAntes = "SELECT id FROM historico_venta WHERE id_cliente = $id AND id_estado = 689";
-      $rPromoVuelveAntes = mysqli_query($mysqli, $qPromoVuelveAntes);
-      $promoVuelveAntes = mysqli_num_rows($rPromoVuelveAntes) ? true : false;
-
-      $qPromoMadre = "SELECT cedula_titular_gf FROM padron_producto_socio WHERE cod_promo = 27 AND cedula = '$cedula'";
-      $rPromoMadre = mysqli_query($mysqli, $qPromoMadre);
-      $promoMadre = mysqli_num_rows($rPromoMadre) > 0 ? mysqli_fetch_assoc($rPromoMadre) : false;
-
-      $qPromoVISA = "SELECT id FROM padron_producto_socio WHERE cod_promo = 28 AND cedula = '$cedula'";
-      $rPromoVISA = mysqli_query($mysqli, $qPromoVISA);
-      $promoVISA = mysqli_num_rows($rPromoVISA) > 0;
 
       if ($alta == '1') { //compe
-
         $qPromoCompetencia = "SELECT importe, cod_promo FROM padron_producto_socio WHERE abm = 'ALTA' AND cedula = '$cedula'";
         $rPromoComp = mysqli_query($mysqli, $qPromoCompetencia);
         if ($rPromoComp && mysqli_num_rows($rPromoComp) > 0) {
@@ -130,38 +73,14 @@ if (isset($_POST["typeAdmin"])) {
 
           while ($row = mysqli_fetch_assoc($rPromoComp)) {
             $importe   = $row['importe'];
-            $codPromo  = $row['cod_promo'];
-            $esPromoComp = (!$esPromoComp && in_array($codPromo, $arrPromoCompetencia))
-              ? true
-              : $esPromoComp; //conva
-            $esPromoCompVeintitres = (in_array('31', ['31', '2031']) && $importe > 0);
-            $esPromoVisa = (!$esPromoComp && (int)$codPromo === 28);
-            $multiplicador = 1;
-
-            if ($esPromoComp) $multiplicador = 0.10;
-            elseif ($esPromoCompVeintitres) $multiplicador = 0.5;
-            elseif ($esPromoVisa) $multiplicador = 0.75;
-
-            $total_importe += round((int)$importe * $multiplicador);
+            $total_importe += round($importe);
           }
         }
 
-        $aplicaAdelanto = ($esPromoComp && $metodo_pago != 2) ? true : false;
 
-        $qOmt = "SELECT cedula, importe FROM padron_producto_socio WHERE servicio = '70' AND cedula_titular_gf = '$cedula'";
-        if ($resultomt = mysqli_query($mysqli, $qOmt)) {
-          if (mysqli_num_rows($resultomt) > 0) {
-            $row = mysqli_fetch_assoc($resultomt);
-            $importeomt = $row['importe'];
-            $total_importe += $importeomt;
-          }
-        }
-
-        $qRechazo = "SELECT id_estado FROM historico_venta WHERE id_cliente = $id AND fecha >= '$fechafil' AND fecha <='$fechaHoy' AND id_estado = 675";
+        $qRechazo = "SELECT id_estado FROM historico_venta WHERE id_cliente = $id AND fecha >= '$fechafil' AND fecha <= '$fechaHoy' AND id_estado = 675";
         $rRechazo = mysqli_query($mysqli, $qRechazo);
-        if ($rRechazo && mysqli_num_rows($rRechazo) > 0) {
-          $esRechazoComp = true;
-        }
+        if ($rRechazo && mysqli_num_rows($rRechazo) > 0) $esRechazoComp = true;
       }
 
 
@@ -186,13 +105,13 @@ if (isset($_POST["typeAdmin"])) {
         'alta'                 => $alta,
         'estado'               => $estado,
         'correspondeVidaPesos' => $corresponde,
-        'promoVuelveAntes'     => $promoVuelveAntes,
+        'promoVuelveAntes'     => false,
         'esRechazoComp'        => $esRechazoComp, //compe
         'aplicaAdelanto'       => $aplicaAdelanto, //compe
         'origenVenta'          => $origenVenta,
         'cobro_obligatorio'    => $cobro_obligatorio,
-        'promoMadre'           => $promoMadre,
-        'promoVISA'            => $promoVISA
+        'promoMadre'           => false,
+        'promoVISA'            => false
       ];
       $response['result'] = true;
     }
@@ -205,6 +124,48 @@ mysqli_close($mysqli);
 echo json_encode($response);
 
 
+
+
+function obtener_datos_socio($id)
+{
+  require "../../../_conexion.php";
+
+  $sql = "SELECT
+           pd.nombre, 
+           pd.cedula, 
+           pd.sucursal, 
+           pd.radio, 
+           pd.tipo_tarjeta, 
+           pd.numero_tarjeta, 
+           pd.email_titular,
+           pd.telefono_titular, 
+           pd.nombre_titular, 
+           pd.cedula_titular, 
+           pd.anio_e, 
+           pd.mes_e, 
+           pd.cuotas_mercadopago,
+           pd.total_importe, 
+           pd.tarjeta_vida, 
+           pd.metodo_pago, 
+           pd.cvv, 
+           m.metodo, 
+           pd.alta, 
+           pd.estado, 
+           pd.id_usuario,
+           u.idgrupo, 
+           pd.fechafil, 
+           pd.localidad
+          FROM 
+           padron_datos_socio pd
+           INNER JOIN metodos_pago m ON m.id = pd.metodo_pago
+           LEFT JOIN usuarios u ON pd.id_usuario = u.id
+          WHERE 
+           pd.id = $id";
+  $consulta = mysqli_query($mysqli, $sql);
+
+  mysqli_close($mysqli);
+  return $consulta;
+}
 
 
 function obtenerOrigenVenta($cedulaAfiliado)

@@ -8,16 +8,15 @@ require_once "../../../_conexion250_TOCS.php";
 require_once "guardarPadron_inspira.php";
 require_once "../functions.php";
 
-$response = array(
-    "result"           => false,
-    "session"          => false,
-    "icon"             => "error",
-    "title"            => "Error",
-    "guardado_padron"  => false,
-    "datosVidaShop"    => [],
-    "preguntarEmail"   => false,
-    "registroVidaShop" => false,
-);
+$response['result'] = false;
+$response['session'] = false;
+$response['icon'] = "error";
+$response['title'] = "Error";
+$response['guardado_padron'] = false;
+$response['datosVidaShop'] = [];
+$response['preguntarEmail'] = false;
+$response['registroVidaShop'] = false;
+
 
 if (isset($_POST["typeAdmin"])) {
     $response["session"] = true;
@@ -33,8 +32,15 @@ if (isset($_POST["typeAdmin"])) {
     $esPromoComp         = false; //compe
     logger("COBRO SOLICITADO PARA[CI]: $cedulaAfiliado ORIGEN $origen", false);
     $fecha = date('Y-m-d H:i');
-    $query = "SELECT `alta` FROM padron_datos_socio WHERE id = $id";
-    if ($result = mysqli_query($mysqli, $query)) {
+
+    try {
+        $query = "SELECT `alta` FROM padron_datos_socio WHERE id = $id";
+        $result = mysqli_query($mysqli, $query);
+    } catch (\Throwable $errores) {
+        registrar_errores($query, "procesoCobroAprobado_inspira.php", $errores);
+    }
+
+    if ($result) {
         $esAlta      = mysqli_fetch_assoc($result)["alta"];
         $error       = false;
         $origenVenta = obtenerOrigenVenta($cedulaAfiliado); //web
@@ -61,31 +67,75 @@ if (isset($_POST["typeAdmin"])) {
                 // ALTA CON MERCADOPAGO
                 if ($isMercadoPago == "true" || $origenVenta == '6') {
                     // Actualizo el count
-                    mysqli_query($mysqli, "UPDATE padron_datos_socio SET `count` = `count` + 1, estado = 6 WHERE id = $id");
-                    mysqli_query($mysqli, "UPDATE padron_producto_socio SET `count` = `count` + 1 WHERE cedula = '$cedulaAfiliado'");
+                    try {
+                        $q1 = "UPDATE padron_datos_socio SET `count` = `count` + 1, estado = 6 WHERE id = $id";
+                        $rq1 = mysqli_query($mysqli, $q1);
+                    } catch (\Throwable $errores) {
+                        registrar_errores($q1, "procesoCobroAprobado_inspira.php", $errores);
+                    }
+
+                    try {
+                        $q2 = "UPDATE padron_producto_socio SET `count` = `count` + 1 WHERE cedula = '$cedulaAfiliado'";
+                        $rq2 = mysqli_query($mysqli, $q2);
+                    } catch (\Throwable $errores) {
+                        registrar_errores($q2, "procesoCobroAprobado_inspira.php", $errores);
+                    }
 
                     // GRUPO FAMILIAR
                     // ACTUALIZA TODOS LOS BENEFICIARIOS
-                    $query = "SELECT cedula FROM padron_producto_socio WHERE cedula_titular_gf = '$cedulaAfiliado' AND  accion = '1' GROUP BY cedula";
-                    if ($result = mysqli_query($mysqli, $query)) {
+                    try {
+                        $query = "SELECT cedula FROM padron_producto_socio WHERE cedula_titular_gf = '$cedulaAfiliado' AND  accion = '1' GROUP BY cedula";
+                        $result = mysqli_query($mysqli, $query);
+                    } catch (\Throwable $errores) {
+                        registrar_errores($query, "procesoCobroAprobado_inspira.php", $errores);
+                    }
+
+                    if ($result) {
                         while ($row = mysqli_fetch_assoc($result)) {
                             // Actualizo el count de los beneficiarios
                             $ci = $row["cedula"];
-                            mysqli_query($mysqli, "UPDATE padron_datos_socio SET `count` = `count` + 1, estado = 6 WHERE cedula = '$ci'");
-                            mysqli_query($mysqli, "UPDATE padron_producto_socio SET `count` = `count` + 1 WHERE cedula = '$ci'");
+                            try {
+                                $q1 = "UPDATE padron_datos_socio SET `count` = `count` + 1, estado = 6 WHERE cedula = '$ci'";
+                                $rq1 = mysqli_query($mysqli, $q1);
+                            } catch (\Throwable $errores) {
+                                registrar_errores($q1, "procesoCobroAprobado_inspira.php", $errores);
+                            }
+
+                            try {
+                                $q2 = "UPDATE padron_producto_socio SET `count` = `count` + 1 WHERE cedula = '$ci'";
+                                $rq2 = mysqli_query($mysqli, $q2);
+                            } catch (\Throwable $errores) {
+                                registrar_errores($q2, "procesoCobroAprobado_inspira.php", $errores);
+                            }
                         }
                     }
                 } else {
-                    mysqli_query($mysqli, "UPDATE padron_datos_socio SET estado = 6 WHERE id = $id");
 
-                    $qPromoCompetencia = "SELECT importe, cod_promo FROM padron_producto_socio WHERE abm = 'ALTA' AND cedula = '$cedulaAfiliado' AND cod_promo IN ('35','2035','3335')"; //compe
-                    $rPromoComp        = mysqli_query($mysqli, $qPromoCompetencia);
+                    try {
+                        $query = "UPDATE padron_datos_socio SET estado = 6 WHERE id = $id";
+                        $rquery = mysqli_query($mysqli, $query);
+                    } catch (\Throwable $errores) {
+                        registrar_errores($query, "procesoCobroAprobado_inspira.php", $errores);
+                    }
+
+                    try {
+                        $qPromoCompetencia = "SELECT importe, cod_promo FROM padron_producto_socio WHERE abm = 'ALTA' AND cedula = '$cedulaAfiliado' AND cod_promo IN ('35','2035','3335')"; //compe
+                        $rPromoComp = mysqli_query($mysqli, $qPromoCompetencia);
+                    } catch (\Throwable $errores) {
+                        registrar_errores($qPromoCompetencia, "procesoCobroAprobado_inspira.php", $errores);
+                    }
+
                     if ($rPromoComp && mysqli_num_rows($rPromoComp) > 0) {
                         $esPromoComp   = true;
                         $total_importe = 0;
 
-                        $query  = "SELECT `id`,`email`,`count` FROM padron_datos_socio WHERE cedula = '$cedulaAfiliado'"; //compe
-                        $result = mysqli_query($mysqli, $query);
+                        try {
+                            $query  = "SELECT `id`,`email`,`count` FROM padron_datos_socio WHERE cedula = '$cedulaAfiliado'"; //compe
+                            $result = mysqli_query($mysqli, $query);
+                        } catch (\Throwable $errores) {
+                            registrar_errores($query, "procesoCobroAprobado_inspira.php", $errores);
+                        }
+
                         if ($result && mysqli_num_rows($result) > 0) {
                             $row         = mysqli_fetch_assoc($result);
                             $email_socio = ($row['email'] != '' && $row['email'] != null && $row['email'] != 'null') ? $row['email'] : 'adelantocobro@vida.com.uy';
@@ -104,11 +154,22 @@ if (isset($_POST["typeAdmin"])) {
                         $response['esPromoComp']        = $esPromoComp;
                     }
 
-                    $query = "SELECT cedula FROM padron_producto_socio WHERE cedula_titular_gf = '$cedulaAfiliado' GROUP BY cedula";
-                    if ($result = mysqli_query($mysqli, $query)) {
+                    try {
+                        $query = "SELECT cedula FROM padron_producto_socio WHERE cedula_titular_gf = '$cedulaAfiliado' GROUP BY cedula";
+                        $result = mysqli_query($mysqli, $query);
+                    } catch (\Throwable $errores) {
+                        registrar_errores($query, "procesoCobroAprobado_inspira.php", $errores);
+                    }
+
+                    if ($result) {
                         while ($row = mysqli_fetch_assoc($result)) {
                             $ci = $row["cedula"];
-                            mysqli_query($mysqli, "UPDATE padron_datos_socio SET estado = 6 WHERE cedula = '$ci'");
+                            try {
+                                $query = "UPDATE padron_datos_socio SET estado = 6 WHERE cedula = '$ci'";
+                                $result = mysqli_query($mysqli, $query);
+                            } catch (\Throwable $errores) {
+                                registrar_errores($query, "procesoCobroAprobado_inspira.php", $errores);
+                            }
                         }
                     }
                 }
@@ -159,15 +220,33 @@ if (isset($_POST["typeAdmin"])) {
                 #####################################################################################################################
             }
         } else {
-            mysqli_query($mysqli, "UPDATE padron_datos_socio SET estado=6 WHERE id=$id");
+
+            try {
+                $query = "UPDATE padron_datos_socio SET estado = 6 WHERE id = $id";
+                $result = mysqli_query($mysqli, $query);
+            } catch (\Throwable $errores) {
+                registrar_errores($query, "procesoCobroAprobado_inspira.php", $errores);
+            }
         }
 
         if (!$error) {
-            $qHistorico = "INSERT INTO historico_venta VALUES(null, $idUser, $id, 6, '$fecha', '$observacionCobro', 11)";
-            if (mysqli_query($mysqli, $qHistorico)) {
+            try {
+                $qHistorico = "INSERT INTO historico_venta VALUES(null, $idUser, $id, 6, '$fecha', '$observacionCobro', 11)";
+                $rHistorico = mysqli_query($mysqli, $qHistorico);
+            } catch (\Throwable $errores) {
+                registrar_errores($qHistorico, "procesoCobroAprobado_inspira.php", $errores);
+            }
+
+            if ($rHistorico) {
                 if ($esAlta == "1") {
-                    $query = "SELECT * FROM padron_datos_socio WHERE cedula = '$cedulaAfiliado'";
-                    if ($result = mysqli_query($mysqli250, $query)) {
+                    try {
+                        $query = "SELECT * FROM padron_datos_socio WHERE cedula = '$cedulaAfiliado'";
+                        $result = mysqli_query($mysqli250, $query);
+                    } catch (\Throwable $errores) {
+                        registrar_errores($query, "procesoCobroAprobado_inspira.php", $errores);
+                    }
+
+                    if ($result) {
                         if (mysqli_num_rows($result) > 0) {
                             $response['message']         = "La persona con cédula $cedulaAfiliado ya se encuentra en padron";
                             $response["guardado_padron"] = false;
@@ -207,12 +286,21 @@ function validarExistenBeneficiariosUdemmSura($cedulaAfiliado)
     global $mysqli;
 
     $faltaUdemm = false;
-    $qServi     = "SELECT servicio FROM padron_producto_socio WHERE cedula = '$cedulaAfiliado' AND servicio IN ('87','88')"; //newform
-    $rServi     = mysqli_query($mysqli, $qServi);
+    try {
+        $qServi     = "SELECT servicio FROM padron_producto_socio WHERE cedula = '$cedulaAfiliado' AND servicio IN ('87','88')"; //newform
+        $rServi     = mysqli_query($mysqli, $qServi);
+    } catch (\Throwable $errores) {
+        registrar_errores($qServi, "procesoCobroAprobado_inspira.php", $errores);
+    }
 
     if (mysqli_num_rows($rServi) > 0) {
-        $qBS        = "SELECT * FROM beneficiarios_servicios WHERE cedula_titular = '$cedulaAfiliado'";
-        $rBS        = mysqli_query($mysqli, $qBS);
+        try {
+            $qBS        = "SELECT * FROM beneficiarios_servicios WHERE cedula_titular = '$cedulaAfiliado'";
+            $rBS        = mysqli_query($mysqli, $qBS);
+        } catch (\Throwable $errores) {
+            registrar_errores($qBS, "procesoCobroAprobado_inspira.php", $errores);
+        }
+
         $faltaUdemm = (mysqli_num_rows($rBS) == 0) ? true : false;
     }
 
@@ -225,8 +313,14 @@ function validarBeneficiariosEnPadron($cedulaAfiliado)
     $error = false;
     global $mysqli;
 
-    $query = "SELECT cedula FROM padron_producto_socio WHERE cedula_titular_gf = '$cedulaAfiliado' AND  accion='1' GROUP BY cedula";
-    if ($result = mysqli_query($mysqli, $query)) {
+    try {
+        $query = "SELECT cedula FROM padron_producto_socio WHERE cedula_titular_gf = '$cedulaAfiliado' AND  accion='1' GROUP BY cedula";
+        $result = mysqli_query($mysqli, $query);
+    } catch (\Throwable $errores) {
+        registrar_errores($query, "procesoCobroAprobado_inspira.php", $errores);
+    }
+
+    if ($result) {
         while ($row = mysqli_fetch_assoc($result)) {
             // Valido cada beneficiario en padron
             $ci = $row["cedula"];
@@ -247,8 +341,14 @@ function obtenerOrigenVenta($cedulaAfiliado)
     $origenVenta = false;
     global $mysqli;
 
-    $query = "SELECT origen_venta FROM padron_datos_socio WHERE cedula = '$cedulaAfiliado'";
-    if ($result = mysqli_query($mysqli, $query)) {
+    try {
+        $query = "SELECT origen_venta FROM padron_datos_socio WHERE cedula = '$cedulaAfiliado'";
+        $result = mysqli_query($mysqli, $query);
+    } catch (\Throwable $errores) {
+        registrar_errores($query, "procesoCobroAprobado_inspira.php", $errores);
+    }
+
+    if ($result) {
         while ($row = mysqli_fetch_assoc($result)) {
             // Valido cada beneficiario en padron
             $origenVenta = $row["origen_venta"];
@@ -264,8 +364,14 @@ function validarCamposVacios($cedulaAfiliado)
     $error = false;
     global $mysqli;
 
-    $query = "SELECT direccion FROM padron_datos_socio WHERE cedula = '$cedulaAfiliado'";
-    if ($result = mysqli_query($mysqli, $query)) {
+    try {
+        $query = "SELECT direccion FROM padron_datos_socio WHERE cedula = '$cedulaAfiliado'";
+        $result = mysqli_query($mysqli, $query);
+    } catch (\Throwable $errores) {
+        registrar_errores($query, "procesoCobroAprobado_inspira.php", $errores);
+    }
+
+    if ($result) {
         while ($row = mysqli_fetch_assoc($result)) {
             // Valido cada beneficiario en padron
             $dir = $row["direccion"];
