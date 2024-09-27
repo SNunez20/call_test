@@ -11,7 +11,7 @@
  Target Server Version : 80200 (8.2.0)
  File Encoding         : 65001
 
- Date: 23/09/2024 23:16:15
+ Date: 27/09/2024 17:16:04
 */
 
 SET NAMES utf8mb4;
@@ -28,7 +28,7 @@ CREATE TABLE `lat_lng_socios`  (
   `longitud` varchar(70) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL,
   `fecha_modificacion` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = MyISAM AUTO_INCREMENT = 16608 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = MyISAM AUTO_INCREMENT = 16609 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of lat_lng_socios
@@ -16639,5 +16639,6 @@ INSERT INTO `lat_lng_socios` VALUES (16604, 26365, '-33', '-56', '2024-09-23 14:
 INSERT INTO `lat_lng_socios` VALUES (16605, 65740, '-33.4554728', '-54.53876959999999', '2024-09-23 14:05:31');
 INSERT INTO `lat_lng_socios` VALUES (16606, 65756, '-32.388532', '-54.16177829999999', '2024-09-23 14:06:17');
 INSERT INTO `lat_lng_socios` VALUES (16607, 65778, '-34.8840852', '-56.1372492', '2024-09-23 14:15:50');
+INSERT INTO `lat_lng_socios` VALUES (16608, 65631, '-34.8840852', '-56.1372492', '2024-09-27 12:02:02');
 
 SET FOREIGN_KEY_CHECKS = 1;

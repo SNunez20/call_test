@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : 250
+ Source Server         : local
  Source Server Type    : MySQL
- Source Server Version : 50651 (5.6.51)
- Source Host           : 192.168.1.250:3306
+ Source Server Version : 80200 (8.2.0)
+ Source Host           : localhost:3306
  Source Schema         : terminos_y_condiciones
 
  Target Server Type    : MySQL
- Target Server Version : 50651 (5.6.51)
+ Target Server Version : 80200 (8.2.0)
  File Encoding         : 65001
 
- Date: 25/09/2024 12:12:06
+ Date: 27/09/2024 17:16:15
 */
 
 SET NAMES utf8mb4;
@@ -22,11 +22,11 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ----------------------------
 DROP TABLE IF EXISTS `empresa`;
 CREATE TABLE `empresa`  (
-  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
   `empresa` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `link` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_spanish2_ci ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_spanish2_ci ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Records of empresa
@@ -40,14 +40,14 @@ INSERT INTO `empresa` VALUES (3, 'Inspira', 'inspiracolonia.com.uy/TOS/');
 -- ----------------------------
 DROP TABLE IF EXISTS `empresa_servicio_tos`;
 CREATE TABLE `empresa_servicio_tos`  (
-  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `id_empresa` int(11) NOT NULL,
-  `id_servicio` int(11) NOT NULL,
-  `id_tos` int(11) NOT NULL,
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_empresa` int NOT NULL,
+  `id_servicio` int NOT NULL,
+  `id_tos` int NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `id_servicio`(`id_servicio`) USING BTREE,
-  INDEX `id_tos`(`id_tos`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 50 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Compact;
+  INDEX `id_servicio`(`id_servicio` ASC) USING BTREE,
+  INDEX `id_tos`(`id_tos` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 50 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Records of empresa_servicio_tos
@@ -107,13 +107,13 @@ INSERT INTO `empresa_servicio_tos` VALUES (49, 1, 112, 43);
 -- ----------------------------
 DROP TABLE IF EXISTS `tos`;
 CREATE TABLE `tos`  (
-  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `id_empresa` int(11) NOT NULL,
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_empresa` int NOT NULL,
   `identificador` varchar(4) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `nombre_tos` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `id_empresa`(`id_empresa`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 44 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_spanish2_ci ROW_FORMAT = Compact;
+  INDEX `id_empresa`(`id_empresa` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 44 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_spanish2_ci ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Records of tos
