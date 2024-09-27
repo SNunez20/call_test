@@ -16,11 +16,9 @@ function logger($message, $error = true)
 }
 
 
-function Logger_inspira($query_result, $crud, $tabla, $name_id, $param, $error = false, $query = "", $mensaje_referencia = "", $linea_log)
+function Logger_inspira($query_result, $crud, $tabla, $name_id, $param, $error, $query, $mensaje_referencia, $linea_log)
 {
     $param = $param != "" ? $param : "";
-    $query = $query != "" ? str_replace("'", '"', $query) : "";
-    $error = $error != "" ? str_replace("'", '"', $error) : "";
 
     $texto_informativo = "{ \n";
     $texto_informativo .= $query_result ? "[ERROR]: \n" : "[OK]: \n";

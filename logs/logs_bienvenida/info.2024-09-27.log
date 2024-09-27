@@ -1,0 +1,5 @@
+[27/09/2024 20:00:43] COBRO SOLICITADO PARA[CI]: 37890474 ORIGEN 3 
+[27/09/2024 20:01:32] RESULTADO LINEA 940 = rHistorico=1 => retornoHistorico=1 retornoServicios=1 rDir=1 
+[27/09/2024 20:01:32] RESULTADO LINEA 944 = resultado= => retorno_servicios=1 retorno_datos=1 rHistorico=1 
+[27/09/2024 20:01:32] RESULTADO LINEA 1019 = resultados=1 => retorno_servicios=1 retorno_datos=1 rHistorico=1 
+[27/09/2024 20:01:32] RESULTADO LINEA 1092 = result=1 => retorno_servicios=1 retorno_datos=1 rHistorico=1 retorno_sms=1 

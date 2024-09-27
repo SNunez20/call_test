@@ -937,9 +937,14 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
             }
         }
 
-        $rHistorico = ($retornoHistorico && $retornoServicios && $rDir);
+        $rHistorico = $retornoHistorico && $retornoServicios && $rDir ? true : false;
+        logger("RESULTADO LINEA 940 = rHistorico=$rHistorico => retornoHistorico=$retornoHistorico retornoServicios=$retornoServicios rDir=$rDir", false);
 
-        if (!$retorno_servicios || !$retorno_datos || !$rHistorico) {
+        
+        $resultado = !$retorno_servicios || !$retorno_datos || !$rHistorico;
+        logger("RESULTADO LINEA 944 = resultado=$resultado => retorno_servicios=$retorno_servicios retorno_datos=$retorno_datos rHistorico=$rHistorico", false);
+
+        if ($resultado) {
             if ($alta == '1') {
                 try {
                     $q1 = "DELETE FROM padron_datos_socio WHERE cedula ='$cedula'";
@@ -1014,47 +1019,32 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
             }
         }
 
-
+        $resultados = $retorno_servicios && $retorno_datos && $rHistorico ? true : false;
+        logger("RESULTADO LINEA 1019 = resultados=$resultados => retorno_servicios=$retorno_servicios retorno_datos=$retorno_datos rHistorico=$rHistorico", false);
 
         // envio de sms con terminos y condiciones al socio
-        if ($retorno_servicios && $retorno_datos && $rHistorico) {
+        if ($resultados) {
 
             // envio de sms con terminos y condiciones al socio
-            $celulares = buscarCelular($datos_socio['tel']);
-            $total     = $datos_socio['total_importe'];
-            $sucursal  = $datos_socio['sucursal'];
-
-            if (!$celulares)
-                $retorno_sms = false;
+            $celulares   = buscarCelular($datos_socio['tel']);
+            $total       = $datos_socio['total_importe'];
+            $sucursal    = $datos_socio['sucursal'];
+            $retorno_sms = false;
 
 
-            switch ((int) $sucursal) {
-                case 1372:
-                case 1373:
-                case 1374:
-                    $empresa = 3;
-                    return;
-                    break;
-                case 1370:
-                case 1371:
-                    $empresa = 2;
-                    return;
-                    break;
+            if (in_array($sucursal, [1372, 1373, 1374])) $empresa = 3;
+            else if (in_array($sucursal, [1370, 1371])) $empresa = 2;
+            else $empresa = 1;
 
-                default:
-                    $empresa = 1;
-                    break;
-            }
 
-            //$qLink = "SELECT empresa, link FROM terminos_y_condiciones.empresa WHERE id = $empresa";
             try {
+                //$qLink = "SELECT empresa, link FROM terminos_y_condiciones.empresa WHERE id = $empresa";
                 $qLink = "SELECT empresa, link FROM empresa WHERE id = $empresa";
                 $rLink = mysqli_query($mysqli250_TOCS, $qLink);
             } catch (\Throwable $errores) {
                 registrar_errores($qLink, "guardarPadron_inspira.php", $errores);
                 $error = true;
             }
-
 
             if ($rLink) {
                 while ($row = mysqli_fetch_assoc($rLink)) {
@@ -1083,7 +1073,7 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
                     }
                 }
 
-                if ($empresa != 3 && $empresa != 2) {
+                if (!in_array($empresa, [2, 3])) {
                     $mensaje = "Bienvenido a $empresaNombre, puede ver los terminos y condiciones de su contrato en $link" . $parametros;
                     $servicio = "http://192.168.104.6/apiws/1/apiws.php?wsdl";
                     $info = [
@@ -1095,14 +1085,16 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
                     foreach ($celulares as $celular) {
                         $info['msgRecip'] = $celular;
                         $client = new SoapClient($servicio, $info);
-                        $client->sendSms($info['authorizedKey'], $info['msgId'], $info['msgData'], $info['msgRecip']);
-                        $retorno_sms = true;
+                        $retorno_sms = $client->sendSms($info['authorizedKey'], $info['msgId'], $info['msgData'], $info['msgRecip']);
                     }
+                }else{
+                    $retorno_sms = true;
                 }
             }
         }
 
-        $result = ($retorno_servicios && $retorno_datos && $rHistorico) && $retorno_sms;
+        $result = $retorno_servicios && $retorno_datos && $rHistorico && $retorno_sms ? true : false;
+        logger("RESULTADO LINEA 1092 = result=$result => retorno_servicios=$retorno_servicios retorno_datos=$retorno_datos rHistorico=$rHistorico retorno_sms=$retorno_sms", false);
     }
 
     if (!$error) copiarPatologiaPiscinaPadron($datos_socio['cedula']);
