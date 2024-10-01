@@ -1,0 +1,15 @@
+{
+  "lengthMenu": "Mostrar _MENU_ &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;    ",
+  "zeroRecords": "No hay datos ingresados",
+  "info": "Mostrando  _START_ de _END_ registros, de _TOTAL_ en total.",
+  "infoEmpty": "No hay datos para mostrar",
+  "infoFiltered": "(Filtrado por busqueda  _MAX_ )",
+  "search": "Buscar",
+  "paginate": {
+    "previous": "Anterior",
+    "next": "Siguiente"
+  },
+  "loadginRecords": "&nbsp;",
+  "processing":"Cargando...",
+  "responsive": true
+}

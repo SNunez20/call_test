@@ -1,13 +1,23 @@
 <?php
 
 session_start();
+
 date_default_timezone_set('America/Argentina/Buenos_Aires');
+
 require_once "../_conexion.php";
-require_once "../_conexion250.php";
 require_once "../_conexion1310.php";
+require_once "../_conexion250.php";
 
+global $mysqli;
+global $mysqli1310;
+global $mysqli250;
 
-define('CODIGO_PROMO_VISA', 28);
+const CODIGO_PROMO_VISA = 28;
+
+const SERVICIOS_CON_RADIO_ADELANTO = [
+  130 => 12,
+  146 => 6
+];
 
 $response = array(
   'result' => false,
@@ -31,7 +41,7 @@ $response["session"] = true;
 $idUser = $_SESSION['idusuario'];
 $nombre_vendedor = $_SESSION['nombreUsuario'];
 $numero_vendedor = $_SESSION['cedulaUsuario'];
-$socio = $_POST['socio'] == 'true' ? true : false;
+$socio = $_POST['socio'] == 'true';
 $nros_servicios = [];
 $servicios = json_decode($_POST["servicios"], true);
 $esPromoCompetenciaVeintitres = false;
@@ -45,21 +55,24 @@ $promoMesMama = $_POST["promoMesMama"];
 $incrementoOmt = mysqli_real_escape_string($mysqli250, $_POST["incrementoOmt"]);
 
 // ################################################################################################
-if (substr($numero_vendedor, 0, 2) != 'CO')
+if (!str_starts_with($numero_vendedor, 'CO'))
   $numero_vendedor = str_replace(range("a", "z"), range(1, 26), strtolower($numero_vendedor));
 if ($numero_vendedor == "149925077")
   $numero_vendedor = "49925077";
 // ################################################################################################
 
 // Recorremos el array de servicos y guardamos los numeros de servicios de cada uno en un array
-$promo_internados = false; //seba
+
+$radioMesesAdelantados = null;
 for ($i = 0; $i < count($servicios); $i++) {
   if (!isset($servicios[$i][0])) continue;
 
   $qServicio = "SELECT nro_servicio from motor_de_precios.servicios where id = " . $servicios[$i][0];
   $rServicio = mysqli_query($mysqli1310, $qServicio);
   $nros_servicios[$i] = mysqli_fetch_assoc($rServicio)['nro_servicio'];
-  if ($servicios[$i][0] == '130') $promo_internados = true; //seba
+
+  if (array_key_exists($servicios[$i][0], SERVICIOS_CON_RADIO_ADELANTO))
+    $radioMesesAdelantados = radioMesesAdelantados(SERVICIOS_CON_RADIO_ADELANTO[$servicios[$i][0]]);
 
   if (in_array($servicios[$i][0], $arrServiciosConModulos)) $servicios[$i][1] *= 8;
 }
@@ -67,7 +80,7 @@ for ($i = 0; $i < count($servicios); $i++) {
 //verificamos si existe servicio grupo familiar
 $grupoFamiliar = in_array('63', $nros_servicios) || in_array('65', $nros_servicios);
 $emergencial = in_array('24', $nros_servicios);
-$arrServiciosIva1 = ['81', '93', '94', '95', '96']; //newproducts
+$arrServiciosIva1 = ['81', '84', '93', '94', '95', '96']; //newproducts
 
 if (!$socio) {
   // Llamada entrante
@@ -93,7 +106,8 @@ if (!$socio) {
   $id_sucursal = mysqli_real_escape_string($mysqli250, $_POST["filial"]);
   $numeroTarjeta = mysqli_real_escape_string($mysqli250, $_POST["numeroTarjeta"]);
   $cuotas_mercadopago = isset($_POST["cuotas"]) ? mysqli_real_escape_string($mysqli250, $_POST["cuotas"]) : 1; //seba
-  $cvv = mysqli_real_escape_string($mysqli250, $_POST["cvv"]);
+  //$cvv = mysqli_real_escape_string($mysqli250, $_POST["cvv"]);
+  $cvv = '';
   $mesVencimiento = mysqli_real_escape_string($mysqli250, $_POST["mesVencimiento"]);
   $anioVencimiento = mysqli_real_escape_string($mysqli250, $_POST["anioVencimiento"]);
   $nombreTitular = mysqli_real_escape_string(
@@ -123,7 +137,7 @@ if (!$socio) {
   $esPromoCompetenciaVeintitres = mysqli_real_escape_string($mysqli250, isset($_POST["esPromoCompetenciaVeintitres"])
     ? $_POST["esPromoCompetenciaVeintitres"] : false); //compe
   $es_vuelve_antes = isset($_POST["es_vuelve_antes"])
-    ? (bool) json_decode($_POST["es_vuelve_antes"]) : false; //vuelve antes
+    ? (bool)json_decode($_POST["es_vuelve_antes"]) : false; //vuelve antes
   $idConvenioEspecial = isset($_POST['tieneConvenioEspecial']) && $_POST['tieneConvenioEspecial'] != 'false'
     ? $mysqli250->real_escape_string($_POST['tieneConvenioEspecial']) : false;
 
@@ -204,7 +218,8 @@ if (!$socio) {
       : "SELECT radio FROM radios_tarjetas WHERE nombre_vida LIKE '%$tipo_tarjeta%'";
     $rMedio = mysqli_query($mysqli, $qMedio);
     $row = mysqli_fetch_assoc($rMedio);
-    $radio = (!$promo_internados) ? $row['radio'] : radioPromoInternados(); //seba
+    $radio = $radioMesesAdelantados ?? $row['radio'];
+
     $medio_valido = mysqli_num_rows($rMedio);
     $sucursal_cobranza_num = '99';
     $empresa_marca = '99';
@@ -243,7 +258,7 @@ if (!$socio) {
   }
 
   if ($medio_valido <= 0) {
-    $log_content = "[ERROR][$log_date]|$numero_vendedor|ALTA|Medio de pago inválido|$query|" . mysqli_error($mysqli);
+    $log_content = "[ERROR][$log_date]|$numero_vendedor|ALTA|Medio de pago inválido|$qMedio|" . mysqli_error($mysqli);
     file_put_contents($log_file, $log_content . "\n", FILE_APPEND);
     $response['result'] = false;
     $response['message'] = 'Medio de pago inválido.';
@@ -252,8 +267,10 @@ if (!$socio) {
   }
 
   $fechafil = date("Y-m-d");
-  $medio_pago = (int) $medio_pago;
-  $sucursal = (int) $sucursal;
+  $medio_pago = (int)$medio_pago;
+  $sucursal = (int)$sucursal;
+
+  $empresa_marca = modificarEmpresaMarcaPorRadio($radio, $empresa_marca);
 
   //datos socio
   $query = "INSERT INTO
@@ -277,29 +294,29 @@ if (!$socio) {
 
   // VIDA ESPECIAL
   $vidaEspecial = [
-    ["numero_servicio" => 12, "importe" => 310],
+    ["numero_servicio" => 12, "importe" => 330],
     ["numero_servicio" => 13, "importe" => 50],
     ["numero_servicio" => 14, "importe" => 90]
   ];
 
   $combo21 = ($edad >= 75) ?
     [
-      ['numero_servicio' => '83', 'importe' => 685],
-      ['numero_servicio' => '84', 'importe' => 725]
+      ['numero_servicio' => '83', 'importe' => 690],
+      ['numero_servicio' => '84', 'importe' => 730]
     ]
     :
     [
-      ['numero_servicio' => '83', 'importe' => 680],
+      ['numero_servicio' => '83', 'importe' => 690],
       ['numero_servicio' => '84', 'importe' => 495]
     ];
 
   $planPlatino = [
-    ["numero_servicio" => '100', "importe" => 520],
+    ["numero_servicio" => '100', "importe" => 550],
     ["numero_servicio" => '101', "importe" => 615],
   ];
 
   $planOro = [
-    ["numero_servicio" => '102', "importe" => 320],
+    ["numero_servicio" => '102', "importe" => 340],
     ["numero_servicio" => '101', "importe" => 615],
   ];
 
@@ -310,8 +327,8 @@ if (!$socio) {
 
   $promoComboSura1 = [
     ["numero_servicio" => '95', "importe" => 110, 'tipo_iva' => 1, 'extra' => '7872'],
-    ["numero_servicio" => '105', "importe" => 625, 'tipo_iva' => 2, 'extra' => '7872'],
-    ["numero_servicio" => '106', "importe" => 105, 'tipo_iva' => 1, 'extra' => '7872'],
+    ["numero_servicio" => '105', "importe" => 665, 'tipo_iva' => 2, 'extra' => '7872'],
+    ["numero_servicio" => '106', "importe" => 115, 'tipo_iva' => 1, 'extra' => '7872'],
   ];
 
   $promoComboSura2 = [
@@ -321,7 +338,7 @@ if (!$socio) {
 
   $promoComplementoCompetencia = [
     ["numero_servicio" => '08', "importe" => 35, 'tipo_iva' => 2],
-    ["numero_servicio" => '97', "importe" => 505, 'tipo_iva' => 2],
+    ["numero_servicio" => '97', "importe" => 510, 'tipo_iva' => 2],
   ];
 
   $comboAldeasInfantiles = [
@@ -899,6 +916,8 @@ if (!$socio) {
     $idRelacion = $empresa_rut . '-' . $cedula_ben;
     $nro_servicio = '70';
 
+    $empresa_marca = modificarEmpresaMarcaPorRadio($radio, $empresa_marca);
+
     $query = "INSERT INTO padron_datos_socio VALUES (null,'$nombre_ben','$tel_ben','$cedula_ben','$direccion_ben','$sucursal','$ruta','$radio','1','$fechan_ben','$edad_ben','$tipo_tarjeta','$tipo_tarjeta',";
     $query .= "'$numeroTarjeta','$nombreTitular','$cedulaTitular','$celularTitular','$anioVencimiento','$mesVencimiento',$cuotas_mercadopago,'$sucursal',$sucursal_cobranzas_num,'$empresa_marca',1,$count,'$observacion','0','$idRelacion','$empresa_rut','$precio_base',";
     $query .= "1,1,1,'$rutcentralizado',0,1,'ALTA','ALTA','1','0','0','0','$fechafil','0','0','0',$medio_pago,'0','0', '0', '$email_titular','$tarjeta_vida',$bancoEmisor,'1',$estado,$id_localidad,'$datoExtra', '0','0','1', '0', $idUser)";
@@ -929,7 +948,6 @@ if (!$socio) {
     }
   }
   #endregion
-
 
 
   $qId = "SELECT id FROM padron_datos_socio WHERE cedula='$cedula'";
@@ -999,7 +1017,7 @@ if (!$socio) {
 
 
   $promoIncrementoSura = [
-    ["numero_servicio" => '06', "importe" => 50, 'tipo_iva' => 2, 'extra' => '0'],
+    ["numero_servicio" => '06', "importe" => 55, 'tipo_iva' => 2, 'extra' => '0'],
     ["numero_servicio" => '95', "importe" => 110, 'tipo_iva' => 1, 'extra' => '0'],
   ];
 
@@ -1290,6 +1308,9 @@ if (!$socio) {
     // ELIMINO LOS SERVICIOS DE LA PSCINA
     mysqli_query($mysqli, "DELETE FROM padron_producto_socio WHERE cedula='$cedula'");
   } else {
+
+    $empresa_marca = modificarEmpresaMarcaPorRadio($radio, $empresa_marca);
+
     $query = "INSERT INTO
             `padron_datos_socio`
             VALUES (
@@ -1592,6 +1613,8 @@ if ($promoMesMama === 'true') {
   $idRelacion = $empresa_rut . '-' . $cedula_ben;
   $nro_servicio = '01';
 
+  $empresa_marca = modificarEmpresaMarcaPorRadio($radio, $empresa_marca);
+
   $query = "INSERT INTO padron_datos_socio VALUES (null,'$nombre_ben','$tel_ben','$cedula_ben','$direccion_ben','$sucursal','$ruta','$radio','1',NOW(),'$edad_ben','$tipo_tarjeta','$tipo_tarjeta',";
   $query .= "'$numeroTarjeta','$nombreTitular','$cedulaTitular','$celularTitular','$anioVencimiento','$mesVencimiento',$cuotas_mercadopago,'$sucursal',$sucursal_cobranzas_num,'$empresa_marca',1,0,'$observacionMadre','0','$idRelacion','$empresa_rut','$precio_base',";
   $query .= "1,1,1,'$rutcentralizado',0,1,'ALTA','ALTA','1','0','0','0',NOW(),'0','0','0',$medio_pago,'0','0', '0', '$email_titular','$tarjeta_vida',$bancoEmisor,'1', '$estadoMadre',$id_localidad,'$datoExtra', '0','0','1', '0', $idUser)";
@@ -1704,7 +1727,7 @@ function validarRegistros($mysqli, $cedula, $socio, $servicios, $id_historico, $
   }
 
   //validamos que el total importe concuerde con la sumatoria de todos los servicios
-  if ($num_servicio != '136') {
+  if (!in_array($num_servicio, [136, 146])) {
     $qTotalImporte = "SELECT SUM(importe) AS sumatoria, servicio FROM padron_producto_socio WHERE cedula = '$cedula'";
     $rTotalImporte = mysqli_query($mysqli, $qTotalImporte);
     if ($rTotalImporte !== false && mysqli_num_rows($rTotalImporte) > 0) {
@@ -1713,7 +1736,7 @@ function validarRegistros($mysqli, $cedula, $socio, $servicios, $id_historico, $
       $sumatoria = $row['sumatoria'];
 
       //ERROR
-      if ($sumatoria != $total && !in_array($servicio, ['63', '65']) && empty($_POST['tieneConvenioEspecial'])) {
+      if ($sumatoria != $total && !in_array($servicio, ['63', '65', '146']) && empty($_POST['tieneConvenioEspecial'])) {
         $rServicios = false;
         eliminarDatos($mysqli, $cedula, $id_historico, $alta); //dir2
         $log_content = "[ERROR][$log_date]| $cedula ||Error: total importe no concuerda con la suma de los servicios| TOTAL: {$total} SUMATORIA: {$sumatoria}" . mysqli_error($mysqli);
@@ -1872,8 +1895,6 @@ function insertarConvenioEspecial($_idSocioPiscina, $_idConvenioEspecial)
  SQL;
   $mysqli->query($qInsert);
 
-  $mysqli->affected_rows;
-
   corregirPrecioTotal($_idSocioPiscina);
 }
 
@@ -1932,16 +1953,46 @@ function buscarCelular($numeros) //sms
 {
   preg_match_all('/(09)[1-9]\d{6}/x', $numeros, $respuesta);
 
-  $respuesta = (count($respuesta[0]) !== 0)
+  return (count($respuesta[0]) !== 0)
     ? $respuesta[0]
     : false;
-
-  return $respuesta;
 }
 
-function radioPromoInternados()
-{ //seba
-  return '109' . date('m');
+function modificarEmpresaMarcaPorRadio($radio, $empresa)
+{
+  switch ((int) $radio) {
+    case 10914:
+      $empresa_marca = 99;
+      break;
+    case 202:
+      $empresa_marca = 99;
+      break;
+    case 7032:
+      $empresa_marca = 16;
+      break;
+
+    default:
+      $empresa_marca = $empresa;
+      break;
+  }
+
+  return $empresa_marca;
+}
+
+/**
+ * Devuelve el radio correspondiente a la cantidad de meses adelantados
+ *
+ * @param $cantidadDeMesesAdelantados
+ *
+ * @return string
+ */
+function radioMesesAdelantados($cantidadDeMesesAdelantados): string
+{
+  $date = new DateTime();
+  $meses = new DateInterval("P{$cantidadDeMesesAdelantados}M");
+  $mes = $date->add($meses)->format('m');
+
+  return "109{$mes}";
 }
 
 function requiereCorroboracionCalidad()
@@ -1952,7 +2003,7 @@ function requiereCorroboracionCalidad()
 
   foreach ($servicios as $_servicio) {
     if (!isset($_servicio[0])) continue;
-    $servicio = (int) $_servicio[0];
+    $servicio = (int)$_servicio[0];
     $corresponde = $corresponde || in_array($servicio, $serviciosCalidad);
   }
 
@@ -1981,6 +2032,7 @@ function estadoCalidad()
  *
  * @param string $tarjeta Número de tarjeta a buscar
  * @param string $cedula Cédula a excluir
+ *
  * @return array
  */
 function buscarAltaConMismaTarjeta($tarjeta, $cedula)
@@ -2016,7 +2068,6 @@ SQL;
   $select = $mysqli->query($qSelect);
 
 
-
   return $select->fetch_all(MYSQLI_ASSOC);
 }
 
@@ -2025,6 +2076,7 @@ SQL;
  *
  * @param int $pps_id ID de la tabla padron_producto_socio EN PISCINA a modificar
  * @param string $pps_cod_promo codigo promo a aplicar en padron_producto_socio EN PISCINA
+ *
  * @return bool
  */
 function aplicarCodigoPromoPorId($pps_id, $pps_cod_promo)
@@ -2048,6 +2100,7 @@ SQL;
  *
  * @param string $cedula cedula a modificarle los productos
  * @param string $pps_cod_promo codigo promo a aplicar en padron_producto_socio EN PISCINA
+ *
  * @return bool
  */
 function aplicarCodigoPromoPorCedula($cedula, $pps_cod_promo)
@@ -2091,6 +2144,7 @@ SQL;
  *
  * @param int $cedula
  * @param int $keepprice1
+ *
  * @return void
  */
 function aplicarPromoFloreada($cedula, $keepprice1)
@@ -2134,7 +2188,7 @@ SQL;
   $data['importe'] = 0;
   $data['cod_promo'] = 30;
   $data['keepprice1'] = $keepprice1;
-  $values =  "NULL, " . '"' . implode('", "', $data) . '"';
+  $values = "NULL, " . '"' . implode('", "', $data) . '"';
 
   $qInsert = <<<SQL
   INSERT INTO
@@ -2184,7 +2238,7 @@ SQL;
   $data['importe'] = 0;
   $data['keepprice1'] = $precio;
   $data['precioOriginal'] = $precio;
-  $values =  "NULL, " . '"' . implode('", "', $data) . '"';
+  $values = "NULL, " . '"' . implode('", "', $data) . '"';
 
   $qInsert = <<<SQL
   INSERT INTO
@@ -2220,6 +2274,7 @@ SQL;
  * @param int $cantidadHoras Cantidad de horas del servicio
  * @param int $cantidadHorasSanatorio Cantidad de horas de sanatorio
  * @param bool $socio ¿Es socio o no?
+ *
  * @return array
  */
 function calcularPrecio(
@@ -2242,28 +2297,28 @@ function calcularPrecio(
 
   $getdata = http_build_query(
     array(
-      'consulta'               => 'calcularTotal',
-      'idFilial'               => $nroFilial,
-      'fechaNacimiento'        => $fechaNacimiento,
-      'idServicio'             => $idServicio,
-      'cantidadHoras'          => $cantidadHoras,
+      'consulta' => 'calcularTotal',
+      'idFilial' => $nroFilial,
+      'fechaNacimiento' => $fechaNacimiento,
+      'idServicio' => $idServicio,
+      'cantidadHoras' => $cantidadHoras,
       'cantidadHorasSanatorio' => $cantidadHorasSanatorio,
-      'socio'                  => $socio,
-      'calcular_con_base'      => $calcularConBase,
+      'socio' => $socio,
+      'calcular_con_base' => $calcularConBase,
     )
   );
 
   $opts = array(
     'http' => array(
-      'header'  => "Content-Type: application/x-www-form-urlencoded\r\n" .
+      'header' => "Content-Type: application/x-www-form-urlencoded\r\n" .
         "Content-Length: " . strlen($getdata) . "\r\n" .
         "User-Agent:MyAgent/1.0\r\n",
-      'method'  => 'GET',
+      'method' => 'GET',
       'content' => $getdata,
     ),
   );
 
-  $context   = stream_context_create($opts);
+  $context = stream_context_create($opts);
   $resultado = file_get_contents(
     'https://vida-apps.com/motorDePrecios_new/PHP/clases/Precios.php?' . $getdata,
     false,

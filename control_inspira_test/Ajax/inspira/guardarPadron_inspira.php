@@ -940,7 +940,7 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
         $rHistorico = $retornoHistorico && $retornoServicios && $rDir ? true : false;
         logger("RESULTADO LINEA 940 = rHistorico=$rHistorico => retornoHistorico=$retornoHistorico retornoServicios=$retornoServicios rDir=$rDir", false);
 
-        
+
         $resultado = !$retorno_servicios || !$retorno_datos || !$rHistorico;
         logger("RESULTADO LINEA 944 = resultado=$resultado => retorno_servicios=$retorno_servicios retorno_datos=$retorno_datos rHistorico=$rHistorico", false);
 
@@ -1087,7 +1087,7 @@ function guardarPadron($id_cliente, $mysqli, $mysqli250, $mysqli1310, $cedulaAfi
                         $client = new SoapClient($servicio, $info);
                         $retorno_sms = $client->sendSms($info['authorizedKey'], $info['msgId'], $info['msgData'], $info['msgRecip']);
                     }
-                }else{
+                } else {
                     $retorno_sms = true;
                 }
             }

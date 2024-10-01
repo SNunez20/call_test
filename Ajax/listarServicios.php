@@ -1,60 +1,72 @@
 <?php
 session_start();
+
+$response = [
+  'result' => false,
+  'message' => '¡Inténtelo nuevamente mas tarde!'
+];
+
 require_once "../_conexion.php";
+global $mysqli;
 
-$response = array('result' => false, 'message' => 'Intentelo nuevamente mas tarde !!');
+if (!isset($_SESSION['idusuario']))
+  die(json_encode([
+    'result' => false,
+    'message' => 'Sin session'
+  ]));
 
-if (isset($_SESSION['idusuario'])) {
-    /**
-     * Code - Estado
-     * 0 - Figura en padrón
-     * 1 - No es socio ni esta en baja (ALTA)
-     * 2 - Clearing
-     * 3 - Todos los productos con cualquier medio de pago
-     * 4 - Solo productos acotados con culaquier medio de pago
-     * 5 - Solo productos actotados SOLO con tarjeta de crédito
-     */
-    $code = $_POST["code"];
-    $localidad = $_POST["localidad"];
-    $servicios = [];
-    $esGrupo = isset($_POST["esGrupo"]) ? $_POST["esGrupo"] : false; //seba
 
-    $where = ($localidad == '20' || $localidad == '23') ? " AND id <> 3" : "";
+/**
+ * Code - Estado
+ * 0 - Figura en padrón
+ * 1 - No es socio ni está en baja (ALTA)
+ * 2 - Clearing
+ * 3 - Todos los productos con cualquier medio de pago
+ * 4 - Productos acotados con cualquier medio de pago
+ * 5 - Productos acotados SOLO con tarjeta de crédito
+ */
 
-    if ($code == 2) {
-        $response["message"] = "Persona no autorizada, consultar con Comercial";
-    } else {
-        if ($code == 4 || $code == 5) {
-            $where .= ' AND id IN (22, 25, 27, 30, 31, 32, 35, 36, 37, 38, 39, 40, 41, 107, 109, 110, 111, 114, 133, 134, 140)';
-        }
+$code = $_POST["code"];
+$localidad = $_POST["localidad"];
+$esGrupo = $_POST["esGrupo"] ?? false;
 
-        $where .= ' AND id NOT IN (117, 118, 119, 120, 121, 122, 123, 124, 135, 138, 142)'; //newproducts
+$servicios = [];
 
-        if ($esGrupo) { //seba
-            $where .= ' AND id NOT IN (130, 133, 134, 136, 139)';
-        }
+$where = ($localidad == '20' || $localidad == '23')
+  ? " AND id <> 3"
+  : "";
 
-        $qServicios = "SELECT * FROM servicios WHERE mostrar = 1 $where";
+if ($code == 2)
+  die(json_encode([
+    'result' => false,
+    'message' => 'Persona no autorizada, consultar con Comercial'
+  ]));
 
-        if ($result = mysqli_query($mysqli, $qServicios)) {
+if ($code == 4 || $code == 5)
+  $where .= ' AND id IN (22, 25, 27, 30, 31, 32, 35, 36, 37, 38, 39, 40, 41, 107, 109, 110, 111, 114, 133, 134, 140)';
 
-            while ($row = mysqli_fetch_array($result)) {
-                $id = $row['id'];
-                $nroServicio = $row['nro_servicio'];
-                $servicio = $row['nombre_servicio'];
+$where .= ' AND id NOT IN (117, 118, 119, 120, 121, 122, 123, 124, 135, 138, 142)'; //newproducts
 
-                $servicios[] = array(
-                    'id' => $id,
-                    'nro_servicio' => $nroServicio,
-                    'servicio' => $servicio
-                );
-            }
-        }
-    }
-    $response = array('result' => true, 'message' => 'Exito', 'servicios' => $servicios);
-} else {
-    $response = array('result' => false, 'message' => 'Sin sesion');
-}
+if ($esGrupo)
+  $where .= ' AND id NOT IN (130, 133, 134, 136, 139)';
 
-mysqli_close($mysqli);
-echo json_encode($response);
+$qServicios = "SELECT * FROM servicios WHERE mostrar = 1 $where";
+
+if ($result = mysqli_query($mysqli, $qServicios))
+  while ($row = mysqli_fetch_array($result)) {
+    $id = $row['id'];
+    $nroServicio = $row['nro_servicio'];
+    $servicio = $row['nombre_servicio'];
+
+    $servicios[] = array(
+      'id' => $id,
+      'nro_servicio' => $nroServicio,
+      'servicio' => $servicio
+    );
+  }
+
+die(json_encode([
+  'result' => true,
+  'message' => 'Éxito',
+  'servicios' => $servicios
+]));

@@ -193,6 +193,8 @@ function mandarMail()
     global $tarjeta_vencimiento;
     define('SIN_INFORMACION', 'Sin información');
 
+    require_once './../lib/PHPMailer/src/PHPMailer.php';
+
     $_fechaNacimiento = (new DateTime($fechaNacimiento))->format('d/m/Y');
     $_telefono = empty($telefono) ? SIN_INFORMACION : $telefono;
     $_celular = empty($celular) ? SIN_INFORMACION : $celular;
@@ -224,7 +226,6 @@ HTML;
 HTML;
     $subject = "Datos de afiliado {$cedula} - {$nombre}. Vida, servicio de compañía";
 
-    require_once __DIR__ . "/../lib/PHPMailerAutoload.php";
     $mail1 = new PHPMailer();
     $mail1->IsSMTP();
     $mail1->isHTML(true);
@@ -242,7 +243,9 @@ HTML;
     $mail1->Subject  = mb_convert_encoding($subject, "ISO-8859-1", mb_detect_encoding($subject));
     $mail1->Body     = mb_convert_encoding($body, "ISO-8859-1", mb_detect_encoding($body));
     $mail1->WordWrap = 50;
-    $mail1->Send();
+    if (!$mail1->Send()) {
+        die(json_encode($mail1->ErrorInfo));
+    }
 }
 
 

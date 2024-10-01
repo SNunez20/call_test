@@ -44,7 +44,7 @@ if (isset($_SESSION["idusuario"])) {
         // Compruebo si es SOCIO, para de esta manera tener en cuenta que productos ofrecer
         // Abrimos la sesión cURL
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "http://localhost/call/Ajax/buscarBaja.php");
+        curl_setopt($ch, CURLOPT_URL, "http://localhost/call_test/Ajax/buscarBaja.php");
         // curl_setopt($ch,CURLOPT_URL,"http://localhost/call_prueba/Ajax/buscarBaja.php");
         // indicamos el tipo de petición
         curl_setopt($ch, CURLOPT_POST, true);

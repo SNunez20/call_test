@@ -1,0 +1,20 @@
+.oculto {
+    display: none;
+}
+.mostrar{
+    display: block;
+}
+.blanco {
+    color:white;
+}
+.requerido{
+    font-weight: bold;
+    font-size: 18px;
+    color: red;
+}
+.buttons-html5 {
+    color: #fff !important;
+   background-color: #198754 !important;
+    border-color: #198754 !important;
+    
+  }

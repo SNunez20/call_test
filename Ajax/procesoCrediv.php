@@ -62,6 +62,11 @@ function EnviarMail($cedula, $nombre, $telefono, $cedula_vendedor, $ccs = null)
         "nombre" => "Elite"
     ];
 
+    $ccs = [
+        "email" => "vidaoficialparaguay@gmail.com",
+        "nombre" => "Jge"
+    ];
+
     $bodyHtml = '<html xmlns="https://www.w3.org/1999/xhtml">
             <head>
             <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
